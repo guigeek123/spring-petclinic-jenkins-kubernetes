@@ -11,15 +11,22 @@ podTemplate(label: 'mypod', containers: [
   ]) {
 
   node('mypod') {
+	stage('Checkout') {
+		checkout scm
+	}
 
-/**  
-*	stage('Build with Maven') {
-*		git 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
-*		container('maven') {
-*		  sh 'mvn clean install'
-*		}
-*    }
-*/
+   
+	stage('Build with Maven') {
+		try {
+			container('maven') {
+				sh 'mvn clean install'
+			}
+		} finally {
+			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.hpi,**/target/*.jpi'
+			findbugs(includePattern:'**/target/findbugsXml.xml')
+        }
+	}
+ 
 	
 	stage('Build and push image with Container Builder') {
         git 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
