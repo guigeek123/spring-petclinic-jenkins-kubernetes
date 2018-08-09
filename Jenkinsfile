@@ -16,17 +16,17 @@ podTemplate(label: 'mypod', containers: [
 		checkout scm
 	}
 
-   
-#	stage('Build with Maven') {
-#		try {
-#			container('maven') {
-#				sh 'mvn clean install -DskipTests'
-#			}
-#		} finally {
-#			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
-#        }
-#	}
- 
+/**   
+*	stage('Build with Maven') {
+*		try {
+*			container('maven') {
+*				sh 'mvn clean install -DskipTests'
+*			}
+*		} finally {
+*			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
+*        }
+*	}
+*/ 
 	
 	stage('Build and push image with Container Builder') {
         git 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
