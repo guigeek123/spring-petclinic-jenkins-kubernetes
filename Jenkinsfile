@@ -23,6 +23,11 @@ spec:
     command:
     - cat
     tty: true
+  - name: gcloud
+    image: gcr.io/cloud-builders/gcloud
+    command:
+	- cat
+    tty: true
   - name: kubectl
     image: gcr.io/cloud-builders/kubectl
     command:
@@ -41,6 +46,15 @@ spec:
       }
     }
 	
+	stage('TODO - build docker + push docker image') {
+		steps {
+			container('gcloud') {
+				sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
+			}
+      }
+		
+		
+    }
 	
   }
 }
