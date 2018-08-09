@@ -46,15 +46,5 @@ spec:
       }
     }
 	
-	stage('TODO - build docker + push docker image') {
-		steps {
-			container('gcloud') {
-				sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
-			}
-      }
-		
-		
-    }
-	
   }
 }
