@@ -31,7 +31,7 @@ podTemplate(label: 'mypod', containers: [
         git 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
 		
 		container('gcloud') {
-			sh 'cp /root/.m2/repository/org/springframework/samples/spring-petclinic/2.0.0.BUILD-SNAPSHOT/target/spring-petclinic-2.0.0.BUILD-SNAPSHOT.jar .'
+			sh 'cp /root/.m2/repository/org/springframework/samples/spring-petclinic/2.0.0.BUILD-SNAPSHOT/spring-petclinic-2.0.0.BUILD-SNAPSHOT.jar .'
           sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
         }
     }
