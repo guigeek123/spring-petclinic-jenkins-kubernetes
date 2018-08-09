@@ -1,7 +1,7 @@
 def project = 'kubepetclinic'
 def  appName = 'petclinic'
 def  feSvcName = "${appName}-frontend"
-def  imageTag = "gcr.io/${project}/${appName}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
+def  imageTag = "gcr.io/${project}/${appName}:${env.BUILD_NUMBER}"
 
 podTemplate(label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
@@ -28,7 +28,7 @@ podTemplate(label: 'mypod', containers: [
  
 	
 	stage('Build and push image with Container Builder') {
-        git 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
+
 		
 		container('gcloud') {
 			sh 'cp /root/.m2/repository/org/springframework/samples/spring-petclinic/2.0.0.BUILD-SNAPSHOT/spring-petclinic-2.0.0.BUILD-SNAPSHOT.jar .'
