@@ -17,15 +17,15 @@ podTemplate(label: 'mypod', containers: [
 	}
 
    
-	stage('Build with Maven') {
-		try {
-			container('maven') {
-				sh 'mvn clean install -DskipTests'
-			}
-		} finally {
-			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
-        }
-	}
+#	stage('Build with Maven') {
+#		try {
+#			container('maven') {
+#				sh 'mvn clean install -DskipTests'
+#			}
+#		} finally {
+#			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
+#        }
+#	}
  
 	
 	stage('Build and push image with Container Builder') {
