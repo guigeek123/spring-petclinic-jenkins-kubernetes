@@ -19,11 +19,10 @@ podTemplate(label: 'mypod', containers: [
 	stage('Build with Maven') {
 		try {
 			container('maven') {
-				sh 'mvn clean install'
+				sh 'mvn clean install -DskipTests'
 			}
 		} finally {
-			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.hpi,**/target/*.jpi'
-			findbugs(includePattern:'**/target/findbugsXml.xml')
+			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
         }
 	}
  
