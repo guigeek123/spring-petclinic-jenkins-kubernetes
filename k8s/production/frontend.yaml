@@ -22,7 +22,7 @@ spec:
     metadata:
       name: frontend
       labels:
-        app: petlclinic
+        app: petclinic
         role: frontend
         env: production
     spec:
