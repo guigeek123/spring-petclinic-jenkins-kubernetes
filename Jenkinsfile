@@ -23,6 +23,9 @@ spec:
     command:
     - cat
     tty: true
+  - name: gcloud
+    image: gcr.io/cloud-builders/gcloud
+    command:
   - name: kubectl
     image: gcr.io/cloud-builders/kubectl
     command:
@@ -36,9 +39,20 @@ spec:
 	stage('Build with Maven') {
       steps {
         container('maven') {
-          sh 'mvn clean package'
+          sh 'mvn clean install'
         }
       }
     }
+	
+	stage('TODO - build docker + push docker image') {
+		steps {
+			container('gcloud') {
+				sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
+			}
+      }
+		
+		
+    }
+	
   }
 }
