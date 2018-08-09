@@ -10,6 +10,7 @@ podTemplate(label: 'mypod', containers: [
   node('mypod') {
     
 	stage('Build with Maven') {
+		git 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
 		container('maven') {
 		  sh 'mvn clean install'
 		}
