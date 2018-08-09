@@ -7,7 +7,7 @@ podTemplate(label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat')
   ], volumes: [
-  persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
+	emptyDirVolume(mountPath: '/root/.m2/repository', memory: false),
   ]) {
 
   node('mypod') {
