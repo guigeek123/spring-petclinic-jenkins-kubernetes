@@ -7,9 +7,6 @@ podTemplate(label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat')
   ], volumes: [
-/** 
-* emptyDirVolume(mountPath: '/root/.m2/repository', memory: false),
-*/
 	persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
   ]) {
 
@@ -18,17 +15,17 @@ podTemplate(label: 'mypod', containers: [
 		checkout scm
 	}
 
-/**   
-*	stage('Build with Maven') {
-*		try {
-*			container('maven') {
-*				sh 'mvn clean install -DskipTests'
-*			}
-*		} finally {
-*			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
-*        }
-*	}
-*/ 
+   
+	stage('Build with Maven') {
+		try {
+			container('maven') {
+				sh 'mvn clean install -DskipTests'
+			}
+		} finally {
+			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
+        }
+	}
+ 
 	
 	stage('Build and push image with Container Builder') {
         git 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
