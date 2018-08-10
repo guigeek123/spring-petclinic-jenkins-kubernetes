@@ -8,10 +8,10 @@ gcloud config set project $GCP_PROJECT
 gcloud config set compute/zone $GCP_ZONE
 
 #Destroy kubernetes cluster 
-gcloud container clusters delete jenkins-cd
+gcloud container clusters delete jenkins-cd -q
 
 #Destroy networks
-gcloud compute networks delete jenkins
+gcloud compute networks delete jenkins -q
 
 #Cleaning helm dir
 printf "Cleaning helm dir ..."

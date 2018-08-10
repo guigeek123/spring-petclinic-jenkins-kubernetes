@@ -6,7 +6,7 @@ BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../ && pwd )"
 GCP_PROJECT=${1:-kubepetclinic}
 GCP_ZONE=${2:-europe-west1-b}
 GCP_MACHINE_TYPE=${3:-n1-standard-2}
-NUM_NODES=${4:-1}
+NUM_NODES=${4:-2}
 #SERVICE_ACCOUNT_FILE=${5:-./service_account.json}
 
 validate_environment() {
@@ -68,6 +68,8 @@ install_helm() {
   ./helm update
 
   #Display helm version 
+  printf "\nWaiting 15s before checking helm installation\n"
+  sleep 15
   ./helm version
 }
 
@@ -78,6 +80,12 @@ build_jenkins_server_with_helm() {
 
 }  
 
+create_namespaces() {
+  printf "\nCreate production namespace"
+  kubectl create ns production
+
+}
+
 
 _main() {
 
@@ -86,19 +94,22 @@ _main() {
   printf "\nProvisioning development environment...."
 
   # Authorise google cloud SDK
-#  configure_gcp
+  configure_gcp
 
   # Create dedicated network within GCP
-#  create_network
+  create_network
 
   # Utilise terraform to provision the Google Cluster
-#  build_gcp_cluster
+  build_gcp_cluster
 
   # Install and configure Helm
-#  install_helm
+  install_helm
 
-  # Push Go CD out on to the cluster
+  # Install and configure Jenkins using Helm
   build_jenkins_server_with_helm
+
+  # Creates Namespaces for later usage
+  create_namespaces
 
   printf "\nCompleted provisioning development environment!!\n\n"
 }
