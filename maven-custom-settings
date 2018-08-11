@@ -3,7 +3,7 @@
     <mirror>
       <id>internal-repository</id>
       <name>Nexus repository proxy</name>
-      <url>http://nexus-sonatype-nexus:8080/repository/maven-public</url>
+      <url>http://nexus-direct:8081/repository/maven-public</url>
       <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
