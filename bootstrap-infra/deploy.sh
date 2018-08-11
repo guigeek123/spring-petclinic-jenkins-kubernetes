@@ -81,7 +81,7 @@ build_jenkins_server_with_helm() {
 }  
 
 create_namespaces() {
-  printf "\nCreate production namespace"
+  printf "\nCreate production namespace\n"
   kubectl create ns production
 
 }
