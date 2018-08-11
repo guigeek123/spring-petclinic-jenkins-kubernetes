@@ -18,11 +18,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
    
 	stage('Build with Maven') {
-		try {
-			container('maven').withMaven(mavenSettingsConfig: 'maven-custom-settings') {sh 'mvn clean install -DskipTests'}
-		} finally {
-			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/*.jar'
-        }
+		container('maven').withMaven(mavenSettingsConfig: 'maven-custom-settings') {sh 'mvn clean install -DskipTests'}
 	}
  
 	
