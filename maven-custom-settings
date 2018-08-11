@@ -1,0 +1,10 @@
+<settings>
+  <mirrors>
+    <mirror>
+      <id>internal-repository</id>
+      <name>Nexus repository proxy</name>
+      <url>http://nexus-sonatype-nexus/proxy</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
