@@ -64,13 +64,13 @@ _main() {
 
   configure_gcp
 
-#  delete_cluster
+  delete_cluster
 
   delete_disks
 
-#  delete_network
+  delete_network
 
-#  cleanup_dir
+  cleanup_dir
 }
 
 _main
