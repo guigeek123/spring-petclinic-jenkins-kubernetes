@@ -3,7 +3,7 @@
     <mirror>
       <id>internal-repository</id>
       <name>Nexus repository proxy</name>
-      <url>http://nexus-sonatype-nexus/proxy</url>
+      <url>http://nexus-sonatype-nexus:8080/</url>
       <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
