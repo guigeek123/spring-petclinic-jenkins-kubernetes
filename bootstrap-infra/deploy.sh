@@ -80,7 +80,7 @@ build_jenkins_server_with_helm() {
 
 }  
 
-build_jenkins_server_with_helm() {
+build_nexus_server_with_helm() {
   printf "\nInstalling nexus ...."
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
 }
