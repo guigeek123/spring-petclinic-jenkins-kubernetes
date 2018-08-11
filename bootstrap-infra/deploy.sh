@@ -80,6 +80,11 @@ build_jenkins_server_with_helm() {
 
 }  
 
+build_jenkins_server_with_helm() {
+  printf "\nInstalling nexus ...."
+  ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
+}
+
 create_namespaces() {
   printf "\nCreate production namespace\n"
   kubectl create ns production
@@ -107,6 +112,9 @@ _main() {
 
   # Install and configure Jenkins using Helm
   build_jenkins_server_with_helm
+
+  # Setup jenkins using helm
+  build_nexus_server_with_helm
 
   # Creates Namespaces for later usage
   create_namespaces
