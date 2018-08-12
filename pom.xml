@@ -208,7 +208,7 @@
   <!-- Set up Nexus repository to deploy releases-->
   <distributionManagement>
     <repository>
-      <id>internal-nexus-repository</id>
+      <id>internal-snapshots-repository</id>
       <url>http://nexus-direct:8081/repository/maven-snapshots/</url>
     </repository>
   </distributionManagement>  

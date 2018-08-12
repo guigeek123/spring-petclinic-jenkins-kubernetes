@@ -2,14 +2,14 @@
   <mirrors>
     <mirror>
       <id>internal-repository</id>
-      <name>Nexus repository proxy</name>
+      <name>Nexus repository direct</name>
       <url>http://nexus-direct:8081/repository/maven-public</url>
       <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
   <servers>
     <server>
-      <id>internal-releases-repository</id>
+      <id>internal-snapshots-repository</id>
       <username>admin</username>
       <password>admin123</password>
     </server>
