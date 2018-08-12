@@ -19,7 +19,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
    
 	stage('Build with Maven') {
 		container('maven') {
-			sh 'mvn -s maven-custom-settings clean install -DskipTests'}
+			sh 'mvn -s maven-custom-settings clean deploy -DskipTests'}
 	}
  
 	
