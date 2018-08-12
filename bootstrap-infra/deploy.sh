@@ -104,13 +104,13 @@ _main() {
   configure_gcp
 
   # Create dedicated network within GCP
-#  create_network
+  create_network
 
   # Utilise terraform to provision the Google Cluster
-#  build_gcp_cluster
+  build_gcp_cluster
 
   # Install and configure Helm
-#  install_helm
+  install_helm
 
   # Install and configure Jenkins using Helm
   build_jenkins_server_with_helm
