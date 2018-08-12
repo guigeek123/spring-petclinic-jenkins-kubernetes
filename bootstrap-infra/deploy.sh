@@ -124,6 +124,9 @@ _main() {
   # Setup jenkins using helm
   build_nexus_server_with_helm
 
+  # Setup sonar
+  build_sonar_server_with_helm
+
   # Creates Namespaces for later usage
   create_namespaces
 
