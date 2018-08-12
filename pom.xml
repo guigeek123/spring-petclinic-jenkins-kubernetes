@@ -209,7 +209,7 @@
   <distributionManagement>
     <repository>
       <id>internal-nexus-releases</id>
-      <url>http://nexus-direct:8081/repository/maven-releases/</url>
+      <url>http://nexus-direct:8081/repository/maven-snapshots/</url>
     </repository>
   </distributionManagement>  
 
