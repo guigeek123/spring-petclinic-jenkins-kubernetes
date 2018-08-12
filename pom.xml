@@ -205,6 +205,16 @@
     </plugins>
   </build>
 
+  <!-- Set up Nexus repository to deploy releases-->
+  <distributionManagement>
+    <repository>
+      <id>internal-nexus-releases</id>
+      <url>http://nexus-direct:8081/repository/maven-releases/</url>
+    </repository>
+  </distributionManagement>  
+
+
+
   <!-- Apache 2 license -->
   <licenses>
     <license>

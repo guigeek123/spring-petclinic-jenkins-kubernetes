@@ -7,4 +7,11 @@
       <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
+  <servers>
+    <server>
+      <id>internal-releases-repository</id>
+      <username>admin</username>
+      <password>admin123</password>
+    </server>
+  </servers>
 </settings>
