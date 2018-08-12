@@ -12,17 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-kind: Service
-apiVersion: v1
+kind: Deployment
+apiVersion: extensions/v1beta1
 metadata:
-  name: petclinic-frontend
+  name: zap
 spec:
-  type: ClusterIP
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-    protocol: TCP
-  selector:
-    app: petclinic
-    role: frontend
+  replicas:
+  template:
+    metadata:
+      name: zap
+      labels:
+        app: zap
+    spec:
+      containers:
+      - name: zap-container
+        image: owasp/zap2docker-stable
+        command: ["zap.sh", "-daemon", "-port", "8090", "-host", "0.0.0.0", "-config", "api.disablekey=true", "-config", "api.addrs.addr.name=.*", "-config", "api.addrs.addr.regex=true"]
+        imagePullPolicy: Always
+        ports:
+        - name: zap-port
+          containerPort: 8090

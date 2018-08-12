@@ -15,9 +15,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: petclinic-frontend
+  name: petclinic-frontend-defaultns
+  namespace: default
 spec:
-  type: ClusterIP
+  type: ExternalName
+  externalName: petclinic-frontend.production.svc.cluster.local
   ports:
   - name: http
     port: 80
