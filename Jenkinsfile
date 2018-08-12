@@ -20,7 +20,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
         stage('Run Sonar analysis') {
                 container('maven') {
                   sh 'mvn help:effective-settings'      
-                  sh 'mvn clean verify sonar:sonar'}
+                  sh 'mvn -s maven-custom-settings clean verify sonar:sonar'}
         }
    
 	stage('Build with Maven') {
