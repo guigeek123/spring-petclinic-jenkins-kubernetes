@@ -89,7 +89,7 @@ build_nexus_server_with_helm() {
 
 build_sonar_server_with_helm() { 
   printf "\nInstalling sonar ...."
-  ./helm install stable/sonarqube -f sonar/values.yaml --wait
+  ./helm install -n sonar stable/sonarqube -f sonar/values.yaml --wait
 }
 
 
