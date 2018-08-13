@@ -19,11 +19,10 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
         stage('Run Sonar analysis') {
                 container('maven') {
-                  sh 'mvn -s maven-custom-settings help:effective-settings'      
                   sh 'mvn -s maven-custom-settings clean verify sonar:sonar'}
         }
    
-	stage('Build with Maven and artifact push to Nexus') {
+	stage('Build with Maven and push artifact to Nexus') {
 		container('maven') {
 			sh 'mvn -s maven-custom-settings clean deploy -DskipTests'}
 	}
