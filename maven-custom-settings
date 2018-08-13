@@ -14,4 +14,21 @@
       <password>admin123</password>
     </server>
   </servers>
+  <pluginGroups>
+    <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+  </pluginGroups>
+  <profiles>
+    <profile>
+      <id>sonar</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+        <properties>
+          <!-- Optional URL to server. Default value is http://localhost:9000 -->
+            <sonar.host.url>
+              http://sonar-sonarqube:9000
+            </sonar.host.url>
+        </properties>
+      </profile>
+   </profiles>
 </settings>

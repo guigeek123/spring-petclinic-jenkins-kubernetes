@@ -16,6 +16,12 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 		checkout scm
 	}
 
+
+        stage('Run Sonar analysis') {
+                container('maven') {
+                  sh 'mvn -s maven-custom-settings help:effective-settings'      
+                  sh 'mvn -s maven-custom-settings clean verify sonar:sonar'}
+        }
    
 	stage('Build with Maven') {
 		container('maven') {

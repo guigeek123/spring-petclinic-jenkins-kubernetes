@@ -87,6 +87,12 @@ build_nexus_server_with_helm() {
   kubectl apply -f nexus/nexus-direct-service.yaml
 }
 
+build_sonar_server_with_helm() { 
+  printf "\nInstalling sonar ...."
+  ./helm install stable/sonarqube -f sonar/values.yaml --wait
+}
+
+
 create_namespaces() {
   printf "\nCreate production namespace\n"
   kubectl create ns production
@@ -117,6 +123,9 @@ _main() {
 
   # Setup jenkins using helm
   build_nexus_server_with_helm
+
+  # Setup sonar
+  build_sonar_server_with_helm
 
   # Creates Namespaces for later usage
   create_namespaces
