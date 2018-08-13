@@ -87,7 +87,7 @@ build_nexus_server_with_helm() {
   kubectl apply -f nexus/nexus-direct-service.yaml
 }
 
-build_sonar_server_with_helm() {} 
+build_sonar_server_with_helm() { 
   printf "\nInstalling sonar ...."
   ./helm install stable/sonarqube -f sonar/values.yaml --wait
 }

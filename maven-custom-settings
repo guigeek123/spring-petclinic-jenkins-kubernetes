@@ -26,7 +26,7 @@
         <properties>
           <!-- Optional URL to server. Default value is http://localhost:9000 -->
             <sonar.host.url>
-              http://vocal-tortoise-sonarqube:9000
+              http://sonar-sonarqube:9000
             </sonar.host.url>
         </properties>
       </profile>
