@@ -21,11 +21,16 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 		container('maven') {
 			sh 'mvn -s maven-custom-settings clean deploy -DskipTests'}
 	}
+
+
+        stage('Download Artifcat from Nexus') {
+                container('maven') {
+                        sh 'mvn -s maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'}
+        }
  
 	
 	stage('Build and push image with Container Builder') {
 		container('gcloud') {
-			sh 'cp /root/.m2/repository/org/springframework/samples/spring-petclinic/2.0.0.BUILD-SNAPSHOT/spring-petclinic-2.0.0.BUILD-SNAPSHOT.jar .'
           sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
         }
     }
