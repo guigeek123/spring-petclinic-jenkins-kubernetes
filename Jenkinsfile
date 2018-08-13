@@ -25,7 +25,9 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
         stage('Download Artifcat from Nexus') {
                 container('maven') {
-                        sh 'mvn -s maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'}
+                        sh 'mkdir targetDocker'
+			sh 'cd targetDocker'
+			sh 'mvn -s ../maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'}
         }
  
 	

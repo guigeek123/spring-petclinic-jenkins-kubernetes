@@ -1,6 +1,6 @@
 FROM openjdk:8
 VOLUME /tmp
-ADD app.jar /app.jar
+ADD targetDocker/app.jar /app.jar
 ENV SPRING_PROFILES_ACTIVE docker
 RUN bash -c 'touch /app.jar'
 EXPOSE 8080
