@@ -12,6 +12,7 @@ def step_impl(context):
             sys.stdout.write('Error: Invalid JSON in %s: %s\n' %
                              (results_file, e))
             assert False
+
 @when('there is a cross domain source inclusion vulnerability')
 def step_impl(context):
     pattern = re.compile(r'cross(?:-|\s+)(?:domain|site)', re.IGNORECASE)
@@ -21,6 +22,17 @@ def step_impl(context):
              matches.append(alert)
     context.matches = matches
     assert True
+
+@when('there is a SQL injection vulnerability')
+def step_impl(context):
+    pattern = re.compile(r'SQL(?:-|\s+)(?:domain|site)', re.IGNORECASE)
+    matches = list()
+    for alert in context.alerts:
+        if pattern.match(alert['alert']) is not None:
+             matches.append(alert)
+    context.matches = matches
+    assert True
+	
 @then('none of these risk levels should be present')
 def step_impl(context):
     high_risks = list()
