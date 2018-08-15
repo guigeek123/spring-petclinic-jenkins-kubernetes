@@ -62,6 +62,8 @@ def main():
     with open('results.json', 'w') as f:
         json.dump(zap.core.alerts(), f)
 
+    with open('results.html', 'w') as f:
+        f.write(zap.core.htmlreport(), f)
 
 if __name__ == '__main__':
     main()
