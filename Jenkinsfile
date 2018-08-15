@@ -19,35 +19,38 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 	
 	stage('Check ZAP results') {
 
-	    /** TODO : Deploy access to target from default namespace (same namespace as ZAP) */
-	    /** For now : using a demo app */
+	    // TODO : Deploy access to target from default namespace (same namespace as ZAP)
+	    // For now : using a demo app
 	    container('kubectl') {
 	        sh 'kubectl apply -f k8s/demo/deployment-frontend.yaml'
 	        sh 'kubectl apply -f k8s/demo/service-frontend.yaml'
 	    }
 
-	    /** Execute scan and analyse results */
+	    // Execute scan and analyse results
 		try {
 
 		    container('zapcli') {
-		        /** Prerequisites installation on python image
-		        *   Could be optimized by providing a custom docker image, built and pushed to github before... */
+		        // Prerequisites installation on python image
+		        //   Could be optimized by providing a custom docker image, built and pushed to github before...
 			    sh 'pip install python-owasp-zap-v2.4'
 			    sh 'pip install behave'
 
-			    /** Executing zap client python scripts */
+			    // Executing zap client python scripts
 			    sh 'cd bootstrap-infra/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://demo-frontend/'
 
-			    /** Analysing results using behave */
-			    sh 'cd scripts && behave'
+			    // Publish ZAP Html Report into Jenkins
+                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
+
+			    // Analysing results using behave
+			    sh 'cd bootstrap-infra/zap/scripts/ && behave'
 		    }
         } catch (all) {
-            /** We do not want to break the build for now */
+            // We do not want to break the build for now
         }
 
-		/** TODO : Publish ZAP report  */
+		// TODO : Publish ZAP report
 
-		/** Disable access from default namespace */
+		// Disable access from default namespace
 		container('kubectl') {
             sh 'kubectl delete deployment demo-app'
             sh 'kubectl delete service demo-frontend'
