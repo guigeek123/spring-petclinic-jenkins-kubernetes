@@ -41,7 +41,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 			    /** Analysing results using behave */
 			    sh 'cd scripts && behave'
 		    }
-        } catch () {
+        } catch (all) {
             /** We do not want to break the build for now */
         }
 
