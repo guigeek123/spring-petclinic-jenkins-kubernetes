@@ -22,8 +22,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 	    /** TODO : Deploy access to target from default namespace (same namespace as ZAP) */
 	    /** For now : using a demo app */
 	    container('kubectl') {
-	        sh 'kubectl apply -f k8s/demo/deployment-frontend.yaml
-	        sh 'kubectl apply -f k8s/demo/service-frontend.yaml
+	        sh 'kubectl apply -f k8s/demo/deployment-frontend.yaml'
+	        sh 'kubectl apply -f k8s/demo/service-frontend.yaml'
 	    }
 
 	    /** Execute scan and analyse results */
