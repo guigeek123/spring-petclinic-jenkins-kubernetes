@@ -36,7 +36,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 			    sh 'pip install behave'
 
 			    /** Executing zap client python scripts */
-			    sh 'cd boostrap-infra/zap/scripts/ && ./pen-test-app.py --zap-host zap-daemon:8090 --target http://demoapp/'
+			    sh 'cd bootstrap-infra/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://demo-frontend/'
 
 			    /** Analysing results using behave */
 			    sh 'cd scripts && behave'
