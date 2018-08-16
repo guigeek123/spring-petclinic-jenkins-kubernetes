@@ -15,14 +15,14 @@
 kind: Deployment
 apiVersion: extensions/v1beta1
 metadata:
-  name: petclinic-frontend-production
+  name: appName-frontend-deployment
 spec:
   replicas:
   template:
     metadata:
       name: frontend
       labels:
-        app: petclinic
+        app: appName
         role: frontend
         env: production
     spec:

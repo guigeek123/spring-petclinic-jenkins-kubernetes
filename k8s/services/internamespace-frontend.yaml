@@ -15,16 +15,16 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: petclinic-frontend-defaultns
+  name: appName-frontend-defaultns
   namespace: default
 spec:
   type: ExternalName
-  externalName: petclinic-frontend.production.svc.cluster.local
+  externalName: appName-frontend.testing.svc.cluster.local
   ports:
   - name: http
     port: 80
     targetPort: 8080
     protocol: TCP
   selector:
-    app: petclinic
+    app: appName
     role: frontend

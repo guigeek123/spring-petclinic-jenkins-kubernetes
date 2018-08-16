@@ -75,20 +75,28 @@ install_helm() {
 
 
 build_jenkins_server_with_helm() {
-  printf "\nInstalling jenkins ...."
+  printf "\nInstalling jenkins with Helm ...."
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
 
 }  
 
 build_nexus_server_with_helm() {
-  printf "\nInstalling nexus ...."
+  printf "\nInstalling nexus with Helm...."
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
   kubectl apply -f nexus/nexus-direct-service.yaml
 }
 
+build_zap_server() {
+    printf "\nInstalling ZAP ..."
+    kubectl apply -f zap/deployment-zap.yaml
+    kubeclt apply -f zap/service-zap.yaml
+}
+
+
 create_namespaces() {
-  printf "\nCreate production namespace\n"
+  printf "\nCreate namespaces\n"
+  kubectl create ns testing
   kubectl create ns production
 
 }
@@ -117,6 +125,9 @@ _main() {
 
   # Setup jenkins using helm
   build_nexus_server_with_helm
+
+  # Setup ZAP server
+  build_zap_server
 
   # Creates Namespaces for later usage
   create_namespaces
