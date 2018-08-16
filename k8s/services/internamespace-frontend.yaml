@@ -15,9 +15,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: appName-frontend
+  name: appName-frontend-defaultns
+  namespace: default
 spec:
-  type: ClusterIP
+  type: ExternalName
+  externalName: appName-frontend.testing.svc.cluster.local
   ports:
   - name: http
     port: 80

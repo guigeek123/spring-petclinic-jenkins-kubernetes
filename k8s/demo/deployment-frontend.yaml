@@ -15,20 +15,20 @@
 kind: Deployment
 apiVersion: extensions/v1beta1
 metadata:
-  name: appName-frontend-deployment
+  name: demo-app
 spec:
   replicas:
   template:
     metadata:
-      name: frontend
+      name: demo-app-frontend
       labels:
-        app: appName
+        app: demo
         role: frontend
         env: production
     spec:
       containers:
-      - name: frontend
-        image: gcr.io/kubepetclinic/petclinic:37
+      - name: demo-frontend
+        image: nginxdemos/hello
 #        resources:
 #          limits:
 #            memory: "500Mi"
@@ -40,5 +40,5 @@ spec:
 #            port: 80
 #        command: ["sh", "-c", "app -frontend=true -backend-service=http://gceme-backend:8080 -port=80"]
         ports:
-        - name: frontend
-          containerPort: 8080
+        - name: port-frontend
+          containerPort: 80
