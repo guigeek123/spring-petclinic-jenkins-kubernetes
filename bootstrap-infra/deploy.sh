@@ -96,7 +96,7 @@ build_sonar_server_with_helm() {
 build_zap_server() {
     printf "\nInstalling ZAP ..."
     kubectl apply -f zap/deployment-zap.yaml
-    kubeclt apply -f zap/service-zap.yaml
+    kubectl apply -f zap/service-zap.yaml
 }
 
 

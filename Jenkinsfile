@@ -52,6 +52,10 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
            * NOTE : this step remains "non blocking" for now (using the try catch below)
            *
            * TODO :
+           *   MANDATORY :
+           *   - Wait for service & deployment to be upp before starting zap testing
+           *
+           *   OPTIMIZATION / BACK LOG
            *   - Make this stage not required for all push (e.g. : only for push on a specific branch ...)
            *
            *   - Add a call to "New Session" ZAP function
@@ -116,6 +120,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
       stage('Deploy to Kube') {
           container('kubectl') {
               sh("sed -i.bak 's#gcr.io/kubepetclinic/petclinic:37#${imageTag}#' ./k8s/production/*.yaml")
+              sh("sed -i.bak 's#appName#${appName}#' ./k8s/production/*.yaml")
               sh("kubectl --namespace=production apply -f k8s/services/")
               sh("kubectl --namespace=production apply -f k8s/production/")
               sh("echo http://`kubectl --namespace=production get service/${feSvcName} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${feSvcName}")
