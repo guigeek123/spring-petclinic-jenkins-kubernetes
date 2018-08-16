@@ -35,21 +35,23 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 	    // For now : using a demo app
 	    container('kubectl') {
 
-	        // Create a dedicating deployment yaml for testing in order not to be confused later with deployment in production
+	        // Create dedicated deployment yaml for testing in order not to be confused later with deployment in production
 	        sh 'mkdir ./k8s/testing/'
 	        sh 'cp ./k8s/production/frontend.yaml k8s/testing/'
 	        sh 'cp ./k8s/services/frontend.yaml k8s/testing/frontend-service.yaml'
 
 	        // Deploy to testing namespace, with the docker image created before
-	        // TODO : remplacer nginxdemos/hello par ${imageTag} ci-dessous
-	        sh 'sed -i.bak 's#gcr.io/kubepetclinic/petclinic:37#nginxdemos/hello#' ./k8s/testing/*.yaml'
-	        sh 'sed -i.bak 's#appName#${appName}#' ./k8s/testing/*.yaml'
+	        // TODO : remplacer nginxdemos/hello par ${imageTag} ci-dessous et virer l'autre ligne
+	        sh("sed -i.bak 's#gcr.io/kubepetclinic/petclinic:37#nginxdemos/hello#' ./k8s/testing/*.yaml")
+            sh("sed -i.bak 's#8080#80#' ./k8s/testing/frontend-service.yaml")
+            // TODO : fin de la partie à editer
+	        sh("sed -i.bak 's#appName#${appName}#' ./k8s/testing/*.yaml")
 	        sh 'kubectl apply -f ./k8s/testing/frontend.yaml --namespace=testing'
             sh 'kubectl apply -f ./k8s/testing/frontend-service.yaml --namespace=testing'
 
             // Deploy an "internamespace service" to make the testing app accessible from the default namespace where zap is running
-            sh 'sed -i.bak 's#appName#${appName}#' ./k8s/services/internamespace-frontend.yaml'
-            sh 'kubectl apply -f /k8s/services/internamespace-frontend.yaml
+            sh("sed -i.bak 's#appName#${appName}#' ./k8s/services/internamespace-frontend.yaml")
+            sh 'kubectl apply -f ./k8s/services/internamespace-frontend.yaml'
 
 	    }
 
@@ -63,7 +65,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 			    sh 'pip install behave'
 
 			    // Executing zap client python scripts
-			    sh 'cd bootstrap-infra/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://${appName}-frontend-defaultns/'
+			    sh "cd bootstrap-infra/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://${appName}-frontend-defaultns/"
 
 			    // Publish ZAP Html Report into Jenkins
                 publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
@@ -77,9 +79,9 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
 		// Destroy app from testing namespace
 		container('kubectl') {
-		    sh 'kubectl delete service ${appName}-frontend-defaultns'
-            sh 'kubectl delete deployment ${appName}-frontend-deployment --namespace=testing'
-            sh 'kubectl delete service ${appName}-frontend --namespace=testing'
+		    sh "kubectl delete service ${appName}-frontend-defaultns"
+            sh "kubectl delete deployment ${appName}-frontend-deployment --namespace=testing"
+            sh "kubectl delete service ${appName}-frontend --namespace=testing"
         }
 	}
 	
