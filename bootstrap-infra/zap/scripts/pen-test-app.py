@@ -36,6 +36,10 @@ def main():
 
     zap = openZapProxy(args)
 
+    # Creates a new sessions to override potential existing results
+    sys.stdout.write('Creating a new session on ZAP server\n')
+    zap.core.new_session("tempsession","true")
+
     sys.stdout.write('Accessing %s\n' % args.target)
     zap.urlopen(args.target)
     # Give the sites tree a chance to get updated
@@ -58,12 +62,18 @@ def main():
     while (int(zap.ascan.status()) < 100):
         time.sleep(5)
 
-    sys.stdout.write('Info: Scan completed; writing results.\n')
+    sys.stdout.write('Info: Scan completed; writing results in html and json formats.\n')
+    # export of results in json format, to be analyzed by behave
     with open('results.json', 'w') as f:
         json.dump(zap.core.alerts(), f)
 
+    # export of results in html format, to be pushed and displayed in Jenkins-
     with open('results.html', 'w') as f:
         f.write(zap.core.htmlreport())
+
+    # Cleaning up results on ZAP server side
+    sys.stdout.write('Deleting results on server side\n')
+    zap.core.delete_all_alerts()
 
 if __name__ == '__main__':
     main()
