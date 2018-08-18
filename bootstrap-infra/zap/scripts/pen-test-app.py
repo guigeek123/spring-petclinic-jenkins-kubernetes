@@ -41,12 +41,12 @@ def main():
     zap.core.new_session("tempsession","true")
 
     #Activate only SQL injection scanner
-    sys.stdout.write('Configuring ZAP scanners for SQL injection only\n')
-    zap.pscan.disable_all_scanners()
-    zap.ascan.disable_all_scanners()
-    zap.ascan.enable_scanners("40018")
-    zap.ascan.set_scanner_attack_strength("40018","High")
-    zap.ascan.set_scanner_alert_threshold("40018","Low")
+    #sys.stdout.write('Configuring ZAP scanners for SQL injection only\n')
+    #zap.pscan.disable_all_scanners()
+    #zap.ascan.disable_all_scanners()
+    #zap.ascan.enable_scanners("40018")
+    #zap.ascan.set_scanner_attack_strength("40018","High")
+    #zap.ascan.set_scanner_alert_threshold("40018","Low")
 
     sys.stdout.write('Accessing %s\n' % args.target)
     zap.urlopen(args.target)
@@ -81,8 +81,8 @@ def main():
         f.write(zap.core.htmlreport())
 
     # Cleaning up results on ZAP server side
-    sys.stdout.write('Deleting results on server side\n')
-    zap.core.delete_all_alerts()
+    #sys.stdout.write('Deleting results on server side\n')
+    #zap.core.delete_all_alerts()
 
 if __name__ == '__main__':
     main()
