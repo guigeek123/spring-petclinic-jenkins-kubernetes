@@ -40,6 +40,14 @@ def main():
     sys.stdout.write('Creating a new session on ZAP server\n')
     zap.core.new_session("tempsession","true")
 
+    #Activate only SQL injection scanner
+    sys.stdout.write('Configuring ZAP scanners for SQL injection only\n')
+    zap.pscan.disable_all_scanners()
+    zap.ascan.disable_all_scanners()
+    zap.ascan.enable_scanners("40018")
+    zap.ascan.set_scanner_attack_strength("40018","High")
+    zap.ascan.set_scanner_alert_threshold("40018","Low")
+
     sys.stdout.write('Accessing %s\n' % args.target)
     zap.urlopen(args.target)
     # Give the sites tree a chance to get updated
@@ -60,6 +68,7 @@ def main():
     sys.stdout.write('Scanning %s\n' % args.target)
     zap.ascan.scan(args.target)
     while (int(zap.ascan.status()) < 100):
+        sys.stdout.write('Scan progress %: \n' + zap.ascan.status())
         time.sleep(5)
 
     sys.stdout.write('Info: Scan completed; writing results in html and json formats.\n')
