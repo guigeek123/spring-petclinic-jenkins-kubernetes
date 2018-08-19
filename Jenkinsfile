@@ -7,10 +7,10 @@ def  imageTagLocal = "nexus-direct:8083/${project}/${appName}:${env.BUILD_NUMBER
 podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'zapcli', image: 'python', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'claircli', image: 'yfoelling/yair', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:latest', ttyEnabled: true, command: 'cat')
+  //containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:latest', ttyEnabled: true, command: 'cat')
   ], volumes: [
 	emptyDirVolume(mountPath: '/root/.m2/repository', memory: false)
   ]) {
@@ -34,8 +34,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
       }
 
       stage('Build with Kaniko and push image to Nexus Repo') {
-          container('kaniko'){
-              sh "/kaniko/executor -f Dockerfile -t ${imageTagLocal} -d -c ."
+          container('kubectl'){
+              sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
           }
       }
 
