@@ -135,7 +135,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh("kubectl --namespace=production apply -f k8s/production/")
               //Display access
               // TODO : put back LoadBalancer deployment, and add a timer to wait for IP attribution
-              sh("echo http://`kubectl --namespace=production get service/${feSvcName} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${feSvcName}")
+              //sh("echo http://`kubectl --namespace=production get service/${feSvcName} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${feSvcName}")
           }
       }
 
