@@ -6,13 +6,13 @@ metadata:
     chart: sonatype-nexus-1.5.1
     fullname: nexus-sonatype-nexus
     release: nexus
-  name: nexus-direct
+  name: nexus-direct-docker-private
 spec:
   type: ClusterIP
   ports:
-  - port: 8081
+  - port: 8083
     protocol: TCP
-    targetPort: 8081
+    targetPort: 8083
   selector:
     app: sonatype-nexus
     release: nexus
