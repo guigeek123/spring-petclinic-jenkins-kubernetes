@@ -99,6 +99,15 @@ build_zap_server() {
     kubectl apply -f zap/service-zap.yaml
 }
 
+build_clair_server_with_helm() {
+  //TODO : To be tested (not tested yet)
+  printf "\nInstalling clair with Helm...."
+  cd boostrap-infra/
+  ./helm dependency update clair
+  ./helm install -n clair clair -f ~/my_custom_values.yaml
+  cd $BASE_DIR
+}
+
 
 create_namespaces() {
   printf "\nCreate namespaces\n"
@@ -133,10 +142,13 @@ _main() {
   build_nexus_server_with_helm
 
   # Setup sonar
-  build_sonar_server_with_helm
+  #build_sonar_server_with_helm
 
   # Setup ZAP server
-  build_zap_server
+  #build_zap_server
+
+  # Set up clair
+  build_clair_server_with_helm
 
   # Creates Namespaces for later usage
   create_namespaces
