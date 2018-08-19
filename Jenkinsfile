@@ -38,7 +38,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
       stage('Create temp bucket'){
           container('gcloud'){
               sh "gsutil mb -c nearline gs://${tempBucket}"
-              sh 'tar -C . -zcvf context.tar.gz .'
+              sh 'tar -C . -zcvf context.tar.gz'
               sh "gsutil cp context.tar.gz gs://${tempBucket}"
           }
       }
