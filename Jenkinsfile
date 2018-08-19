@@ -47,6 +47,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Build with Kaniko and push image to Nexus Repo') {
           container('kubectl'){
+              sh 'tar -C . -zcvf context.tar.gz /tmp/context/'
               //sh("sed -i.bak 's#BUCKETNAME#gs://${tempBucket}#' ./k8s/kaniko/kaniko.yaml")
               sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
           }
