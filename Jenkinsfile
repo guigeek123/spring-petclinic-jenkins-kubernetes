@@ -13,7 +13,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   //containerTemplate(name: 'claircli', image: 'yfoelling/yair', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:latest', ttyEnabled: true, command: 'cat')
   ], volumes: [
-        persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
+        persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
         emptyDirVolume(mountPath: '/tmp/context/', memory: false)
         //emptyDirVolume(mountPath: '/root/.m2/repository', memory: false)
   ]) {
