@@ -36,19 +36,18 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           }
       }
 
-      /**stage('Create temp bucket'){
-      *    container('gcloud'){
-      *        sh "gsutil mb -c nearline gs://${tempBucket}"
-      *        //TODO : how to current directory without changing it ?
-      *        sh 'tar -C . -zcvf context.tar.gz .'
-      *        sh "gsutil cp context.tar.gz gs://${tempBucket}"
-      *    }
-      } */
+      stage('Create temp bucket'){
+          container('gcloud'){
+              sh "gsutil mb -c nearline gs://${tempBucket}"
+              //TODO : how to current directory without changing it ? --> TAR into /tmp/context/
+              sh 'tar -C . -zcvf context.tar.gz /tmp/context'
+              sh "gsutil cp /tmp/context/context.tar.gz gs://${tempBucket}"
+          }
+      }
 
       stage('Build with Kaniko and push image to Nexus Repo') {
           container('kubectl'){
-              sh 'tar -C . -zcvf context.tar.gz /tmp/context/'
-              //sh("sed -i.bak 's#BUCKETNAME#gs://${tempBucket}#' ./k8s/kaniko/kaniko.yaml")
+              sh("sed -i.bak 's#BUCKETNAME#${tempBucket}/context.tar.gz#' ./k8s/kaniko/kaniko.yaml")
               sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
           }
       }
