@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    args: ["--dockerfile=Dockerfile",
+            "--context=dir://.",
+            "--destination=nexus-direct:8083/kubepetclinic:1"]
+#    volumeMounts:
+#      - name: kaniko-secret
+#        mountPath: /secret
+#    env:
+#      - name: GOOGLE_APPLICATION_CREDENTIALS
+#        value: /secret/kaniko-secret.json
+#  restartPolicy: Never
+#  volumes:
+#    - name: kaniko-secret
+#      secret:
+#        secretName: kaniko-secret
