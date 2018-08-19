@@ -14,6 +14,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   //containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:latest', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
+        emptyDirVolume(mountPath: '/tmp/context/', memory: false)
         //emptyDirVolume(mountPath: '/root/.m2/repository', memory: false)
   ]) {
 
@@ -35,17 +36,18 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           }
       }
 
-      stage('Create temp bucket'){
-          container('gcloud'){
-              sh "gsutil mb -c nearline gs://${tempBucket}"
-              sh 'tar -C . -zcvf context.tar.gz'
-              sh "gsutil cp context.tar.gz gs://${tempBucket}"
-          }
-      }
+      /**stage('Create temp bucket'){
+      *    container('gcloud'){
+      *        sh "gsutil mb -c nearline gs://${tempBucket}"
+      *        //TODO : how to current directory without changing it ?
+      *        sh 'tar -C . -zcvf context.tar.gz .'
+      *        sh "gsutil cp context.tar.gz gs://${tempBucket}"
+      *    }
+      } */
 
       stage('Build with Kaniko and push image to Nexus Repo') {
           container('kubectl'){
-              sh("sed -i.bak 's#BUCKETNAME#gs://${tempBucket}#' ./k8s/kaniko/kaniko.yaml")
+              //sh("sed -i.bak 's#BUCKETNAME#gs://${tempBucket}#' ./k8s/kaniko/kaniko.yaml")
               sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
           }
       }
