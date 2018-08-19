@@ -131,7 +131,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh("sed -i.bak 's#appName#${appName}#' ./k8s/production/*.yaml")
               sh("sed -i.bak 's#appName#${appName}#' ./k8s/services/frontend.yaml")
               //Deploy application
-              sh("kubectl --namespace=production apply -f k8s/services/")
+              sh("kubectl --namespace=production apply -f k8s/services/frontend.yaml")
               sh("kubectl --namespace=production apply -f k8s/production/")
               //Display access
               // TODO : put back LoadBalancer deployment, and add a timer to wait for IP attribution
