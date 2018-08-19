@@ -3,16 +3,18 @@ def  appName = 'petclinic'
 def  feSvcName = "${appName}-frontend"
 def  imageTag = "gcr.io/${project}/${appName}:${env.BUILD_NUMBER}"
 def  imageTagLocal = "nexus-direct:8083/${project}/${appName}:${env.BUILD_NUMBER}"
+def tempBucket = "${project}-${appName}-${env.BUILD_NUMBER}"
 
 podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'zapcli', image: 'python', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'claircli', image: 'yfoelling/yair', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:latest', ttyEnabled: true, command: 'cat')
   ], volumes: [
-	emptyDirVolume(mountPath: '/root/.m2/repository', memory: false)
+        persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false)
+        //emptyDirVolume(mountPath: '/root/.m2/repository', memory: false)
   ]) {
 
   node('mypod') {
@@ -33,17 +35,32 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           }
       }
 
+      stage('Create temp bucket'){
+          container('gcloud'){
+              sh "gsutil mb -c nearline gs://${tempBucket}"
+              sh 'tar -C . -zcvf context.tar.gz .'
+              sh "gsutil cp context.tar.gz gs://${tempBucket}"
+          }
+      }
+
       stage('Build with Kaniko and push image to Nexus Repo') {
           container('kubectl'){
               sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
           }
       }
 
-      stage('Build and push image with Container Builder') {
-          container('gcloud') {
-              sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
+      stage('Delete bucket'){
+          container('gcloud'){
+              sh "gsutil rm -r gs://${tempBucket}"
           }
       }
+
+      /** stage('Build and push image with Container Builder') {
+      *    container('gcloud') {
+      *        sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
+      *    }
+      *}
+       */
 
 
   }  
