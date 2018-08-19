@@ -95,6 +95,12 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   sh 'pip install python-owasp-zap-v2.4'
                   sh 'pip install behave'
 
+                  //Give a chance to app to start
+                  //TODO : find a good "wait" method
+                  sh 'sleep 30'
+                  //Check if the app is available (should show some html source code in logs)
+                  sh "curl http://${appName}-frontend-defaultns/"
+
                   // Executing zap client python scripts
                   sh "cd bootstrap-infra/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://${appName}-frontend-defaultns/"
 
