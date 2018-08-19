@@ -125,10 +125,16 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Deploy to Kube') {
           container('kubectl') {
+              //Write the image to be deployed in the yaml deployment file
               sh("sed -i.bak 's#gcr.io/kubepetclinic/petclinic:37#${imageTag}#' ./k8s/production/*.yaml")
+              //Personalizes the deployment file with application name
               sh("sed -i.bak 's#appName#${appName}#' ./k8s/production/*.yaml")
+              sh("sed -i.bak 's#appName#${appName}#' ./k8s/service/frontend.yaml")
+              //Deploy application
               sh("kubectl --namespace=production apply -f k8s/services/")
               sh("kubectl --namespace=production apply -f k8s/production/")
+              //Display access
+              // TODO : put back LoadBalancer deployment, and add a timer to wait for IP attribution
               sh("echo http://`kubectl --namespace=production get service/${feSvcName} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${feSvcName}")
           }
       }
