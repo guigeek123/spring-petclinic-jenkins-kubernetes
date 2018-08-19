@@ -7,7 +7,7 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
     args: ["--dockerfile=Dockerfile",
-            "--context=dir://.",
+            "--context=dir://BUCKETNAME",
             "--destination=nexus-direct-docker-private:8083/kubepetclinic:1"]
 #    volumeMounts:
 #      - name: kaniko-secret
