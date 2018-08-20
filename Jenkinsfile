@@ -31,6 +31,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Download Artifact from Nexus') {
           container('maven') {
+              //Moving into subdirectory to avoid maven using the POM.XML of the project (makes it fail...)
               sh 'mkdir targetDocker'
               sh 'cd targetDocker && mvn -s ../maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'
           }
@@ -52,27 +53,21 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh("sed -i.bak 's#APPNAME#${appName}#' ./k8s/kaniko/kaniko.yaml")
               sh("sed -i.bak 's#TAG#${env.BUILD_NUMBER}#' ./k8s/kaniko/kaniko.yaml")
               sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
-              //Wait for image to start before view logs
+              //Wait for kaniko image to start before viewing logs
+              //Displaying logs also allows to wait for building image task to finish before going to next steps
               sh 'sleep 15'
               sh("kubectl logs -f kaniko-${appName}")
-              //To verify : is it required to delete pod ?
-              //sh("kubectl delete pod kaniko-${appName}")
+              //Require to delete the pod cause it remains with status completed instead
+              sh("kubectl delete pod kaniko-${appName}")
           }
       }
 
       stage('Delete bucket'){
           container('gcloud'){
+              //Delete the bucket : not required anymore
               sh "gsutil rm -r gs://${tempBucket}"
           }
       }
-
-      /** stage('Build and push image with Container Builder') {
-      *    container('gcloud') {
-      *        sh "PYTHONUNBUFFERED=1 gcloud container builds submit -t ${imageTag} ."
-      *    }
-      *}
-       */
-
 
   }  
 
