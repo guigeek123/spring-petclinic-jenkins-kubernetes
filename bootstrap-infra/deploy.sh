@@ -100,11 +100,11 @@ build_zap_server() {
 }
 
 build_clair_server_with_helm() {
-  //TODO : To be tested (not tested yet)
+  #TODO : To be tested (not tested yet)
   printf "\nInstalling clair with Helm...."
   cd boostrap-infra/
   ./helm dependency update clair
-  ./helm install -n clair clair -f ~/my_custom_values.yaml
+  ./helm install -n clair clair -f clair/values.yaml
   cd $BASE_DIR
 }
 
@@ -124,22 +124,22 @@ _main() {
   printf "\nProvisioning development environment...."
 
   # Authorise google cloud SDK
-  configure_gcp
+  #configure_gcp
 
   # Create dedicated network within GCP
-  create_network
+  #create_network
 
   # Utilise terraform to provision the Google Cluster
-  build_gcp_cluster
+  #build_gcp_cluster
 
   # Install and configure Helm
-  install_helm
+  #install_helm
 
   # Install and configure Jenkins using Helm
-  build_jenkins_server_with_helm
+  #build_jenkins_server_with_helm
 
   # Setup jenkins using helm
-  build_nexus_server_with_helm
+  #build_nexus_server_with_helm
 
   # Setup sonar
   #build_sonar_server_with_helm
