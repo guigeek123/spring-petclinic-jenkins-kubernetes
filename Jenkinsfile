@@ -10,7 +10,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'zapcli', image: 'python', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'claircli', image: 'python', ttyEnabled: true, command: 'cat')
+  containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
         emptyDirVolume(mountPath: '/tmp/context/', memory: false)
@@ -74,14 +74,15 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               container('claircli') {
                   // Prerequisites installation on python image
                   // Could be optimized by providing a custom docker image, built and pushed to github before...
-                  sh 'pip install --no-cache-dir -r boostrap-infra/clair/scripts/requirements.txt'
+                  sh 'pip install --no-cache-dir -r bootstrap-infra/clair/scripts/requirements.txt'
 
                   // Push clair config
                   // TODO : change script for better config integration ? (command line...)
+                  sh 'mkdir /opt && mkdir /opt/yair && mkdir /opt/yair/config'
                   sh 'cp bootstrap-infra/clair/scripts/config.yaml /opt/yair/config/'
 
                   // Executing customized Yair script
-                  sh "cd bootstrap-infra/clair/scripts/ && chmod +x yair-custom.py && ./yair-custom.py ${appName}:${env.BUILD_NUMBER}"
+                  sh "cd bootstrap-infra/clair/scripts/ && chmod +x yair-custom.py && ./yair-custom.py ${appName}:${env.BUILD_NUMBER} --no-namespace"
 
                   // TODO : change yair script to generate an html report
                   // Publish Clair Html Report into Jenkins (jenkins plugin required)
