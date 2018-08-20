@@ -38,8 +38,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Create temp bucket'){
           container('gcloud'){
+              //Creates a bucket to give context to kaniko for docker image building
               sh "gsutil mb -c nearline gs://${tempBucket}"
-              //TODO : how to current directory without changing it ? --> TAR into /tmp/context/
               sh 'tar -C . -zcvf /tmp/context/context.tar.gz .'
               sh "gsutil cp /tmp/context/context.tar.gz gs://${tempBucket}"
           }
@@ -47,10 +47,14 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Build with Kaniko and push image to Nexus Repo') {
           container('kubectl'){
+              //Personalize kaniko execution config
               sh("sed -i.bak 's#BUCKETNAME#${tempBucket}/context.tar.gz#' ./k8s/kaniko/kaniko.yaml")
+              sh("sed -i.bak 's#APPNAME#${appName}#' ./k8s/kaniko/kaniko.yaml")
+              sh("sed -i.bak 's#TAG#${env.BUILD_NUMBER}#' ./k8s/kaniko/kaniko.yaml")
               sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
+              //Wait for image to start before view logs
               sh 'sleep 15'
-              sh 'kubectl logs -f kaniko'
+              sh("kubectl logs -f kaniko-${appName}")
           }
       }
 
