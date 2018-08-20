@@ -8,7 +8,8 @@ spec:
     image: gcr.io/kaniko-project/executor:latest
     args: ["--dockerfile=Dockerfile",
             "--context=gs://BUCKETNAME",
-            "--destination=nexus-direct-docker-private:8083/kubepetclinic:1"]
+            "--destination=nexus-direct-docker-private:8083/kubepetclinic:1",
+            --insecure-skip-tls-verify]
 #    volumeMounts:
 #      - name: kaniko-secret
 #        mountPath: /secret
