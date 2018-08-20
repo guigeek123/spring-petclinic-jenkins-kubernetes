@@ -40,7 +40,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           container('gcloud'){
               sh "gsutil mb -c nearline gs://${tempBucket}"
               //TODO : how to current directory without changing it ? --> TAR into /tmp/context/
-              sh 'tar -C . -zcvf context.tar.gz /tmp/context'
+              sh 'tar -C . -zcvf /tmp/context/context.tar.gz .'
               sh "gsutil cp /tmp/context/context.tar.gz gs://${tempBucket}"
           }
       }
