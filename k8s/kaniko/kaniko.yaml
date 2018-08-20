@@ -10,14 +10,14 @@ spec:
             "--context=gs://BUCKETNAME",
             "--destination=nexus-direct-docker-private:8083/kubepetclinic:1",
             --insecure-skip-tls-verify]
-#    volumeMounts:
-#      - name: kaniko-secret
-#        mountPath: /secret
-#    env:
-#      - name: GOOGLE_APPLICATION_CREDENTIALS
-#        value: /secret/kaniko-secret.json
-#  restartPolicy: Never
-#  volumes:
-#    - name: kaniko-secret
-#      secret:
-#        secretName: kaniko-secret
+    volumeMounts:
+      - name: kaniko-secret
+        mountPath: /secret
+    env:
+      - name: NEXUS_APPLICATION_CREDENTIALS
+        value: /secret/kaniko-secret.json
+  restartPolicy: Never
+  volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: kaniko-secret

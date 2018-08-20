@@ -77,6 +77,8 @@ install_helm() {
 build_jenkins_server_with_helm() {
   printf "\nInstalling jenkins with Helm ...."
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
+  printf "\nCreating persistent directory for local .m2 ...."
+  kubeclt apply -f jenkins/maven-with-cache-pvc.yaml
 
 }  
 
@@ -102,10 +104,12 @@ build_zap_server() {
 build_clair_server_with_helm() {
   #TODO : To be tested (not tested yet)
   printf "\nInstalling clair with Helm...."
-  cd boostrap-infra/
+  #cd boostrap-infra/
   ./helm dependency update clair
   ./helm install -n clair clair -f clair/values.yaml
-  cd $BASE_DIR
+  #cd $BASE_DIR
+  printf "\nICreating secret for kaniko to push Docker image on Nexus...."
+  kubectl create secret generic kaniko-secret --from-file=kaniko/kaniko-secret.json
 }
 
 
