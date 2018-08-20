@@ -49,6 +49,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           container('kubectl'){
               sh("sed -i.bak 's#BUCKETNAME#${tempBucket}/context.tar.gz#' ./k8s/kaniko/kaniko.yaml")
               sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
+              sh 'sleep 15'
+              sh 'kubectl logs -f kaniko'
           }
       }
 

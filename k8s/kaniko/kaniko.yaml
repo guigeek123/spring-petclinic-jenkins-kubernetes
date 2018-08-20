@@ -11,13 +11,10 @@ spec:
             "--destination=nexus-direct-docker-private:8083/kubepetclinic:1",
             --insecure-skip-tls-verify]
     volumeMounts:
-      - name: kaniko-secret
+      - name: docker-config
         mountPath: /root/.docker/
-    env:
-      - name: NEXUS_APPLICATION_CREDENTIALS
-        value: /root/.docker/config.json
   restartPolicy: Never
   volumes:
-    - name: kaniko-secret
-      secret:
-        secretName: kaniko-secret
+    - name: docker-config
+      configMap:
+        name: docker-config

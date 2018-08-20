@@ -109,7 +109,8 @@ build_clair_server_with_helm() {
   ./helm install -n clair clair -f clair/values.yaml
   #cd $BASE_DIR
   printf "\nICreating secret for kaniko to push Docker image on Nexus...."
-  kubectl create secret generic kaniko-secret --from-file=kaniko/config.json
+  #kubectl create secret generic kaniko-secret --from-file=kaniko/config.json
+  kubectl create configmap docker-config --from-file=kaniko/config.json
 }
 
 
