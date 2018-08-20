@@ -90,7 +90,7 @@ build_nexus_server_with_helm() {
   kubectl apply -f nexus/nexus-direct-service.yaml
   kubectl apply -f nexus/nexus-direct-docker-private-service.yaml
   kubectl apply -f nexus/nexus-direct-docker-group-service.yaml
-  #TODO : Automatize Jenkins config to create docker repos....
+  #TODO : Automatize Jenkins config to create docker repos.... and then remove warning at the end of the script !!!
 }
 
 build_sonar_server_with_helm() {
@@ -133,28 +133,28 @@ _main() {
   printf "\nProvisioning development environment...."
 
   # Authorise google cloud SDK
-  #configure_gcp
+  configure_gcp
 
   # Create dedicated network within GCP
-  #create_network
+  create_network
 
   # Utilise terraform to provision the Google Cluster
-  #build_gcp_cluster
+  build_gcp_cluster
 
   # Install and configure Helm
-  #install_helm
+  install_helm
 
   # Install and configure Jenkins using Helm
-  #build_jenkins_server_with_helm
+  build_jenkins_server_with_helm
 
   # Setup jenkins using helm
-  #build_nexus_server_with_helm
+  build_nexus_server_with_helm
 
   # Setup sonar
-  #build_sonar_server_with_helm
+  build_sonar_server_with_helm
 
   # Setup ZAP server
-  #build_zap_server
+  build_zap_server
 
   # Set up clair
   build_clair_server_with_helm
@@ -163,6 +163,7 @@ _main() {
   create_namespaces
 
   printf "\nCompleted provisioning development environment!!\n\n"
+  printf "\n\n\n\n\n WARNING : DON'T FORGET TO CREATE NEXUS DOCKER REPOSITORIES !!!!!!!!!!! \n\n\n\n\n"
 }
 
 _main
