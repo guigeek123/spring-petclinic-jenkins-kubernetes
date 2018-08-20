@@ -55,6 +55,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //Wait for image to start before view logs
               sh 'sleep 15'
               sh("kubectl logs -f kaniko-${appName}")
+              //To verify : is it required to delete pod ?
+              //sh("kubectl delete pod kaniko-${appName}")
           }
       }
 
