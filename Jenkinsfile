@@ -10,8 +10,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'zapcli', image: 'python', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'claircli', image: 'yfoelling/yair', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:latest', ttyEnabled: true, command: 'cat')
+  containerTemplate(name: 'claircli', image: 'python', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
         emptyDirVolume(mountPath: '/tmp/context/', memory: false)
@@ -68,6 +67,33 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh "gsutil rm -r gs://${tempBucket}"
           }
       }
+
+      stage('Analyse Docker image with CLAIR') {
+          // Execute scan and analyse results
+          try {
+              container('claircli') {
+                  // Prerequisites installation on python image
+                  // Could be optimized by providing a custom docker image, built and pushed to github before...
+                  sh 'pip install --no-cache-dir -r boostrap-infra/clair/scripts/requirements.txt'
+
+                  // Push clair config
+                  // TODO : change script for better config integration ? (command line...)
+                  sh 'cp bootstrap-infra/clair/scripts/config.yaml /opt/yair/config/'
+
+                  // Executing customized Yair script
+                  sh "cd bootstrap-infra/clair/scripts/ && chmod +x yair-custom.py && ./yair-custom.py ${appName}:${env.BUILD_NUMBER}"
+
+                  // TODO : change yair script to generate an html report
+                  // Publish Clair Html Report into Jenkins (jenkins plugin required)
+                  // publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
+
+              }
+          } catch (all) {
+              // TODO : ??????
+          }
+
+      }
+
 
   }  
 

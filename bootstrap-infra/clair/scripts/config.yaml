@@ -1,6 +1,6 @@
 ---
 registry:
-  host: "http://nexus-direct:8082"
+  host: "http://nexus-direct-docker-group:8082"
 
 clair:
   host: "clair:6060"

@@ -86,7 +86,11 @@ build_nexus_server_with_helm() {
   printf "\nInstalling nexus with Helm...."
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
+  #TODO : create a single service with multi port mapping
   kubectl apply -f nexus/nexus-direct-service.yaml
+  kubectl apply -f nexus/nexus-direct-docker-private-service.yaml
+  kubectl apply -f nexus/nexus-direct-docker-group-service.yaml
+  #TODO : Automatize Jenkins config to create docker repos....
 }
 
 build_sonar_server_with_helm() {
@@ -108,8 +112,8 @@ build_clair_server_with_helm() {
   ./helm dependency update clair
   ./helm install -n clair clair -f clair/values.yaml
   #cd $BASE_DIR
-  printf "\nICreating secret for kaniko to push Docker image on Nexus...."
-  #kubectl create secret generic kaniko-secret --from-file=kaniko/config.json
+  printf "\nCreating configmap for kaniko to push Docker image on Nexus...."
+  printf "\nWARNING SECU : Nexus password encoded in Base64 only..."
   kubectl create configmap docker-config --from-file=kaniko/config.json
 }
 
