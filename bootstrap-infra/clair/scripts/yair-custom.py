@@ -47,11 +47,11 @@ def fetchArguments():
     parse.add_argument('-h', '--fail-on-high-vuln', help='Fail if high vuln is present (return error 2)',
                        default='true', dest='big_vuln_fail_on')
     parse.add_argument('-d', '--docker-registry', help='Docker registry url:port',
-                       default='http://127.0.0.1:8082', dest='docker_registry')
+                       default='http://nexus-direct-docker-group:8082', dest='docker_registry')
     parse.add_argument('-h', '--output-format', help='Output format (table, short-table,json)',
                        default='table', dest='output')
     parse.add_argument('-c', '--clair-server', help='clair host',
-                       default='localhost:6060', dest='clair_server')
+                       default='clair:6060', dest='clair_server')
     parse.add_argument("--no-namespace", action="store_true", dest="no_namespace", default=False,
                             help="If your image names doesnt contain the \"namespace\" and its not in the default \"library\" namespace.")
     parse.add_argument("image", action="store",
