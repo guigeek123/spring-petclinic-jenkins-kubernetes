@@ -18,8 +18,16 @@ import argparse
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 100)
 sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 100)
 
+
+
 def initialize():
     args = fetchArguments()
+
+    global image_score_fail_on
+    global big_vuln_fail_on
+    global docker_registry
+    global output
+    global clair_server
 
     image_score_fail_on=args.image_score_fail_on
     big_vuln_fail_on=args.big_vuln_fail_on
@@ -93,6 +101,11 @@ def y_req(address, method, h=None, data=None):
 
 def get_image_manifest():
     global registry_token
+    global image_score_fail_on
+    global big_vuln_fail_on
+    global docker_registry
+    global output
+    global clair_server
     req_headers = {}
     req_url = docker_registry + "/v2/" + image_name + "/manifests/" + image_tag
     req_headers['Accept'] = 'application/vnd.docker.distribution.manifest.v2+json'
@@ -131,6 +144,11 @@ def get_image_manifest():
     return data
 
 def get_image_layers():
+    global image_score_fail_on
+    global big_vuln_fail_on
+    global docker_registry
+    global output
+    global clair_server
     manifest = get_image_manifest()
     if manifest['schemaVersion'] == 1:
         result = map(lambda x: x['blobSum'], manifest['fsLayers'])
@@ -146,6 +164,11 @@ def get_image_layers():
         raise NotImplementedError("unknown schema version")
 
 def analyse_image():
+    global image_score_fail_on
+    global big_vuln_fail_on
+    global docker_registry
+    global output
+    global clair_server
     # delete old check results
     try:
         req_url = "http://" + clair_server + "/v1/layers/" + layers[-1]
@@ -177,6 +200,11 @@ def analyse_image():
         y_req(req_url, "post", data=json.dumps(json_data), h=req_headers)
 
 def get_image_info():
+    global image_score_fail_on
+    global big_vuln_fail_on
+    global docker_registry
+    global output
+    global clair_server
     vuln_data = []
     severitys= ["Unknown","Negligible","Low", "Medium", "High", "Critical", "Defcon1"]
 
@@ -218,6 +246,11 @@ def get_image_info():
     return vuln_data
 
 def output_data():
+    global image_score_fail_on
+    global big_vuln_fail_on
+    global docker_registry
+    global output
+    global clair_server
     image_score = 0
     big_vuln = False
     table = []
