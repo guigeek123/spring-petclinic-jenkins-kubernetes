@@ -21,7 +21,7 @@ validate_environment() {
 }
 
 configure_gcp() {
-#  gcloud auth application-default login
+  gcloud auth application-default login
   gcloud config set project $GCP_PROJECT
   gcloud config set compute/zone $GCP_ZONE
 
@@ -78,7 +78,7 @@ build_jenkins_server_with_helm() {
   printf "\nInstalling jenkins with Helm ...."
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
   printf "\nCreating persistent directory for local .m2 ...."
-  kubeclt apply -f jenkins/maven-with-cache-pvc.yaml
+  kubectl apply -f jenkins/maven-with-cache-pvc.yaml
 
 }  
 
