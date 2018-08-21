@@ -21,7 +21,7 @@ validate_environment() {
 }
 
 configure_gcp() {
-  gcloud auth application-default login
+#  gcloud auth application-default login
   gcloud config set project $GCP_PROJECT
   gcloud config set compute/zone $GCP_ZONE
 
