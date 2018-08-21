@@ -44,7 +44,7 @@ def fetchArguments():
     parse = argparse.ArgumentParser()
     parse.add_argument('-s', '--fail-on-score', help='Failure score threshold (return erro 2)',
                        default='379', dest='image_score_fail_on')
-    parse.add_argument('-h', '--fail-on-high-vuln', help='Fail if high vuln is present (return error 2)',
+    parse.add_argument('-v', '--fail-on-high-vuln', help='Fail if high vuln is present (return error 2)',
                        default='true', dest='big_vuln_fail_on')
     parse.add_argument('-d', '--docker-registry', help='Docker registry url:port',
                        default='http://nexus-direct-docker-group:8082', dest='docker_registry')
