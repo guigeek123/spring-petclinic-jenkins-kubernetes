@@ -12,37 +12,10 @@ import json
 import requests
 from tabulate import tabulate
 import textwrap
-import yaml
 import argparse
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 100)
 sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 100)
-
-args = fetchArguments()
-image_score_fail_on=args.image_score_fail_on
-big_vuln_fail_on=args.big_vuln_fail_on
-docker_registry=args.docker_registry
-output=args.output
-clair_server=args.clair_server
-
-image = args.image
-try:
-    image, image_tag = image.rsplit(':', 1)
-except ValueError:
-    image_tag = "latest"
-
-image_s = image.split('/')
-if len(image_s) == 1:
-    if args.no_namespace == True:
-        image_name = image
-    else:
-        image_name = "library/" + image
-elif len(image_s) == 2:
-    image_name = image
-else:
-    print("image name containes slashes", file=sys.stderr)
-    exit(1)
-
 
 def fetchArguments():
     parse = argparse.ArgumentParser()
@@ -270,6 +243,32 @@ def output_data():
     else:
         print("the image has to many fixable vulnerabilities", file=sys.stderr)
         exit(2)
+
+
+args = fetchArguments()
+image_score_fail_on=args.image_score_fail_on
+big_vuln_fail_on=args.big_vuln_fail_on
+docker_registry=args.docker_registry
+output=args.output
+clair_server=args.clair_server
+
+image = args.image
+try:
+    image, image_tag = image.rsplit(':', 1)
+except ValueError:
+    image_tag = "latest"
+
+image_s = image.split('/')
+if len(image_s) == 1:
+    if args.no_namespace == True:
+        image_name = image
+    else:
+        image_name = "library/" + image
+elif len(image_s) == 2:
+    image_name = image
+else:
+    print("image name containes slashes", file=sys.stderr)
+    exit(1)
 
 
 if __name__ == '__main__':

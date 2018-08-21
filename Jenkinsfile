@@ -78,13 +78,12 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
                   // Push clair config
                   // TODO : change script for better config integration ? (command line...)
-                  sh 'mkdir /opt && mkdir /opt/yair && mkdir /opt/yair/config'
-                  sh 'cp bootstrap-infra/clair/scripts/config.yaml /opt/yair/config/'
+                  //sh 'mkdir /opt && mkdir /opt/yair && mkdir /opt/yair/config'
+                  //sh 'cp bootstrap-infra/clair/scripts/config.yaml /opt/yair/config/'
 
                   // Executing customized Yair script
                   // --no-namespace cause docker image is not pushed withi a "Library" folder in Nexus
                   sh "cd bootstrap-infra/clair/scripts/ && chmod +x yair-custom.py && ./yair-custom.py ${appName}:${env.BUILD_NUMBER} --no-namespace"
-                  ./yair-custom.py petclinic:1 --no-namespace
 
                   // TODO : change yair script to generate an html report
                   // Publish Clair Html Report into Jenkins (jenkins plugin required)
