@@ -30,12 +30,6 @@ big_vuln_fail_on=bool(config['fail_on']['big_vulnerability'])
 docker_registry=config['registry']['host']
 output=config['output']['format']
 clair_server=config['clair']['host']
-try:
-    rocket_chat_enable=True
-    rocket_hook_url = config['output']['rocketchat']['webhook_url']
-    rocket_receiver= config['output']['rocketchat']['receiver'].split(",")
-except KeyError:
-    rocket_chat_enable=False
 
 arg_parser = argparse.ArgumentParser()
 
@@ -224,12 +218,6 @@ def get_image_info():
 
     return vuln_data
 
-def send_to_rocket(message, emoji):
-    if rocket_chat_enable:
-        for receiver in rocket_receiver:
-            payload = {"icon_emoji": emoji, "channel": receiver, "text": message}
-            y_req(rocket_hook_url, "post", data=json.dumps(payload))
-
 def output_data():
     image_score = 0
     big_vuln = False
@@ -278,19 +266,11 @@ def output_data():
           file=sys.stderr)
 
     if big_vuln and big_vuln_fail_on:
-        send_to_rocket('The security scan for "{}:{}" has found an '
-                       'vulnerability with severity high or higher!'
-                       .format(image_name, image_tag),
-                       ":information_source:")
         print("the image has \"high\" vulnerabilities", file=sys.stderr)
         exit(2)
     elif image_score < image_score_fail_on:
         exit(0)
     else:
-        send_to_rocket('The security scan for "{}:{}" has found an '
-                       'vulnerability score of {}!'
-                       .format(image_name, image_tag, image_score),
-                       ":information_source:")
         print("the image has to many fixable vulnerabilities", file=sys.stderr)
         exit(2)
 
