@@ -15,55 +15,48 @@ import textwrap
 import yaml
 import argparse
 
-try:
-    with open("config.yaml", 'r') as cfg:
-        config = yaml.load(cfg)
-except yaml.parser.ParserError:
-    print("error while parsing config.yaml", file=sys.stderr)
-    exit(1)
-
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 100)
 sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 100)
 
-image_score_fail_on=config['fail_on']['score']
-big_vuln_fail_on=bool(config['fail_on']['big_vulnerability'])
-docker_registry=config['registry']['host']
-output=config['output']['format']
-clair_server=config['clair']['host']
+def initialize():
+    args = fetchArguments()
 
-arg_parser = argparse.ArgumentParser()
+    image = args.image
+    try:
+        image, image_tag = image.rsplit(':', 1)
+    except ValueError:
+        image_tag = "latest"
 
-arg_parser.add_argument("--no-namespace", action="store_true", dest="no_namespace", default=False,
-    help="If your image names doesnt contain the \"namespace\" and its not in the default \"library\" namespace.")
-
-arg_parser.add_argument("--registry", action="store",
-    help="Overwrites the \"registry::host\" configfile option.")
-
-arg_parser.add_argument("image", action="store",
-    help="The image you want to scan. if you provide no tag we will assume \"latest\". if you provide no namespace we will assume \"library\".")
-
-args = arg_parser.parse_args()
-
-if args.registry != None:
-    docker_registry = args.registry
-
-image = args.image
-try:
-    image, image_tag = image.rsplit(':', 1)
-except ValueError:
-    image_tag = "latest"
-
-image_s = image.split('/')
-if len(image_s) == 1:
-    if args.no_namespace == True:
+    image_s = image.split('/')
+    if len(image_s) == 1:
+        if args.no_namespace == True:
+            image_name = image
+        else:
+            image_name = "library/" + image
+    elif len(image_s) == 2:
         image_name = image
     else:
-        image_name = "library/" + image
-elif len(image_s) == 2:
-    image_name = image
-else:
-    print("image name containes slashes", file=sys.stderr)
-    exit(1)
+        print("image name containes slashes", file=sys.stderr)
+        exit(1)
+
+
+def fetchArguments():
+    parse = argparse.ArgumentParser()
+    parse.add_argument('-s', '--fail-on-score', help='Failure score threshold (return erro 2)',
+                       default='379', dest='image_score_fail_on')
+    parse.add_argument('-h', '--fail-on-high-vuln', help='Fail if high vuln is present (return error 2)',
+                       default='true', dest='big_vuln_fail_on')
+    parse.add_argument('-d', '--docker-registry', help='Docker registry url:port',
+                       default='http://127.0.0.1:8082', dest='docker_registry')
+    parse.add_argument('-h', '--output-format', help='Output format (table, short-table,json)',
+                       default='table', dest='output')
+    parse.add_argument('-c', '--clair-server', help='clair host',
+                       default='localhost:6060', dest='clair_server')
+    parse.add_argument("--no-namespace", action="store_true", dest="no_namespace", default=False,
+                            help="If your image names doesnt contain the \"namespace\" and its not in the default \"library\" namespace.")
+    parse.add_argument("image", action="store",
+                        help="The image you want to scan. if you provide no tag we will assume \"latest\". if you provide no namespace we will assume \"library\".")
+    return parse.parse_args()
 
 
 def y_req(address, method, h=None, data=None):
@@ -276,6 +269,7 @@ def output_data():
 
 
 if __name__ == '__main__':
+    initialize()
     layers = get_image_layers()
     analyse_image()
     vuln_data = get_image_info()
