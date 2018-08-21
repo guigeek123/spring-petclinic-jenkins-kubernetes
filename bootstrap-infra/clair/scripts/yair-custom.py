@@ -21,6 +21,12 @@ sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', 100)
 def initialize():
     args = fetchArguments()
 
+    image_score_fail_on=args.image_score_fail_on
+    big_vuln_fail_on=args.big_vuln_fail_on
+    docker_registry=args.docker_registry
+    output=args.output
+    clair_server=args.clair_server
+
     image = args.image
     try:
         image, image_tag = image.rsplit(':', 1)
@@ -48,7 +54,7 @@ def fetchArguments():
                        default='true', dest='big_vuln_fail_on')
     parse.add_argument('-d', '--docker-registry', help='Docker registry url:port',
                        default='http://nexus-direct-docker-group:8082', dest='docker_registry')
-    parse.add_argument('-h', '--output-format', help='Output format (table, short-table,json)',
+    parse.add_argument('-f', '--output-format', help='Output format (table, short-table,json)',
                        default='table', dest='output')
     parse.add_argument('-c', '--clair-server', help='clair host',
                        default='clair:6060', dest='clair_server')
