@@ -86,10 +86,7 @@ build_nexus_server_with_helm() {
   printf "\nInstalling nexus with Helm...."
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
-  #TODO : create a single service with multi port mapping
   kubectl apply -f nexus/nexus-direct-service.yaml
-  kubectl apply -f nexus/nexus-direct-docker-private-service.yaml
-  kubectl apply -f nexus/nexus-direct-docker-group-service.yaml
   #TODO : Automatize Jenkins config to create docker repos.... and then remove warning at the end of the script !!!
 }
 
@@ -106,7 +103,6 @@ build_zap_server() {
 }
 
 build_clair_server_with_helm() {
-  #TODO : To be tested (not tested yet)
   printf "\nInstalling clair with Helm...."
   #cd boostrap-infra/
   ./helm dependency update clair

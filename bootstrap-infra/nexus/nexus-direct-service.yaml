@@ -10,10 +10,18 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 8081
+  - name: mavenport
+    port: 8081
     protocol: TCP
     targetPort: 8081
+  - name: dockergroupport
+    port: 8082
+    protocol: TCP
+    targetPort: 8082
+  - name: dockerprivateport
+    port: 8083
+    protocol: TCP
+    targetPort: 8083
   selector:
     app: sonatype-nexus
     release: nexus
-# TODO : set multi port to open 8081 (maven), 8082 (docker proxy registry) and 8083 (docker private registry)

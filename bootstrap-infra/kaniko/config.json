@@ -1,6 +1,6 @@
 {
   "auths": {
-    "nexus-direct-docker-private:8083": {
+    "nexus-direct:8083": {
       "auth": "YWRtaW46YWRtaW4xMjM="
     }
   }

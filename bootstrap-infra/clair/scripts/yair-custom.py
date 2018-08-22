@@ -24,7 +24,7 @@ def fetchArguments():
     parse.add_argument('-v', '--fail-on-high-vuln', help='Fail if high vuln is present (return error 2)',
                        default='true', dest='big_vuln_fail_on')
     parse.add_argument('-d', '--docker-registry', help='Docker registry url:port',
-                       default='http://nexus-direct-docker-group:8082', dest='docker_registry')
+                       default='http://nexus-direct:8082', dest='docker_registry')
     parse.add_argument('-f', '--output-format', help='Output format (table, short-table,json)',
                        default='table', dest='output')
     parse.add_argument('-c', '--clair-server', help='clair host',
