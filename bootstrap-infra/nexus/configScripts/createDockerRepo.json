@@ -1,0 +1,5 @@
+{
+  "name":"docker",
+  "type":"groovy",
+  "content":"repository.createDockerHosted('docker-private',8083,0);repository.createDockerProxy('docker-hub', 'https://registry-1.docker.io', 'HUB', null, 0, null);repository.createDockerGroup('docker-group', 8082, 0, ['docker-hub','docker-private'])"}"
+}

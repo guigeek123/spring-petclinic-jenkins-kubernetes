@@ -16,6 +16,7 @@ validate_environment() {
 
  command -v gcloud >/dev/null 2>&1 || { echo >&2 "Google Cloud SDK required - doesn't seem to be on your path.  Aborting."; exit 1; }
  command -v kubectl >/dev/null 2>&1 || { echo >&2 "Kubernetes commands required - doesn't seem to be on your path.  Aborting."; exit 1; }
+ command -v curl >/dev/null 2>&1 || { echo >&2 "Curl commands required - doesn't seem to be on your path.  Aborting."; exit 1; }
 
  printf "\nAll pre-requisite software seem to be installed :)"
 }
@@ -87,7 +88,6 @@ build_nexus_server_with_helm() {
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
   kubectl apply -f nexus/nexus-direct-service.yaml
-  #TODO : Automatize Jenkins config to create docker repos.... and then remove warning at the end of the script !!!
 }
 
 build_sonar_server_with_helm() {
@@ -121,6 +121,17 @@ create_namespaces() {
 
 }
 
+configure_nexus() {
+  #Create access to nexus POD
+  #TODO : it assumes that nexus POD has had the time to start... make a proper script to check it
+  ./access_nexus.sh
+  while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081)" != "200" ]]; do sleep 5; done
+  #TODO : manage nexus password.. (e.g. : script sh to generate a random password, push to nexus, push it to kubernetes secret for later use, and configure associated parts : maven and kaniko within POD Templates in Jenkinsfile)
+  curl u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/createDockerRepo.json
+  curl X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/docker/run'
+  #curl -u admin:admin123 -X DELETE http://localhost:8081/service/rest/v1/script/docker
+
+}
 
 _main() {
 
@@ -154,6 +165,9 @@ _main() {
 
   # Set up clair
   build_clair_server_with_helm
+
+  # Creates docker repo within Nexus
+  configure_nexus
 
   # Creates Namespaces for later usage
   create_namespaces
