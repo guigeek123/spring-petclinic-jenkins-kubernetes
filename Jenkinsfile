@@ -36,16 +36,15 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           }
       }
 
-      stage('Create temp bucket'){
+      stage('Build with Kaniko and push image to Nexus Repo') {
+
           container('gcloud'){
               //Creates a bucket to give context to kaniko for docker image building
               sh "gsutil mb -c nearline gs://${tempBucket}"
               sh 'tar -C . -zcvf /tmp/context/context.tar.gz .'
               sh "gsutil cp /tmp/context/context.tar.gz gs://${tempBucket}"
           }
-      }
 
-      stage('Build with Kaniko and push image to Nexus Repo') {
           container('kubectl'){
               //Personalize kaniko execution config
               sh("sed -i.bak 's#BUCKETNAME#${tempBucket}/context.tar.gz#' ./k8s/kaniko/kaniko.yaml")
@@ -59,9 +58,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //Require to delete the pod cause it remains with status completed instead
               sh("kubectl delete pod kaniko-${appName}")
           }
-      }
 
-      stage('Delete bucket'){
           container('gcloud'){
               //Delete the bucket : not required anymore
               sh "gsutil rm -r gs://${tempBucket}"
@@ -75,11 +72,6 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   // Prerequisites installation on python image
                   // Could be optimized by providing a custom docker image, built and pushed to github before...
                   sh 'pip install --no-cache-dir -r bootstrap-infra/clair/scripts/requirements.txt'
-
-                  // Push clair config
-                  // TODO : change script for better config integration ? (command line...)
-                  //sh 'mkdir /opt && mkdir /opt/yair && mkdir /opt/yair/config'
-                  //sh 'cp bootstrap-infra/clair/scripts/config.yaml /opt/yair/config/'
 
                   // Executing customized Yair script
                   // --no-namespace cause docker image is not pushed withi a "Library" folder in Nexus
