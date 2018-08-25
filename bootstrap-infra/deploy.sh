@@ -172,8 +172,6 @@ _main() {
   # Creates Namespaces for later usage
   create_namespaces
 
-  printf "\nCompleted provisioning development environment!!\n\n"
-  printf "\n\n\n\n\n WARNING : DON'T FORGET TO CREATE NEXUS DOCKER REPOSITORIES !!!!!!!!!!! \n\n\n\n\n"
 }
 
 _main
