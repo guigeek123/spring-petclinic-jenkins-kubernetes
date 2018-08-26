@@ -99,6 +99,11 @@ build_zap_server() {
     kubectl apply -f zap/service-zap.yaml
 }
 
+build_defectdojo_server() {
+    printf "\nInstalling DefectDojo ..."
+    kubectl apply -f defectdojo/k8s/deployment-defectdojo.yaml
+    kubectl apply -f defectdojo/k8s/service-defectdojo.yaml
+}
 
 create_namespaces() {
   printf "\nCreate namespaces\n"
@@ -115,13 +120,13 @@ _main() {
   printf "\nProvisioning development environment...."
 
   # Authorise google cloud SDK
-  configure_gcp
+  #configure_gcp
 
   # Create dedicated network within GCP
-  create_network
+  #create_network
 
   # Utilise terraform to provision the Google Cluster
-  build_gcp_cluster
+  #build_gcp_cluster
 
   # Install and configure Helm
   install_helm
@@ -130,18 +135,28 @@ _main() {
   build_jenkins_server_with_helm
 
   # Setup jenkins using helm
-  build_nexus_server_with_helm
+  #build_nexus_server_with_helm
 
   # Setup sonar
-  build_sonar_server_with_helm
+  #build_sonar_server_with_helm
 
   # Setup ZAP server
-  build_zap_server
+  #build_zap_server
+
+  # Setup DefectDojo
+  build_defectdojo_server
 
   # Creates Namespaces for later usage
-  create_namespaces
+  #create_namespaces
 
   printf "\nCompleted provisioning development environment!!\n\n"
+
+  printf "\n\n\n\n\n"
+  printf "DON'T FORGET : Manual configuration for DEFECTDOJO is REQUIRED !!!!"
+  printf "1 - Get the API key from http://localhost:8000/api/key, to use it Jenkins pipeline parameter\n"
+  printf "2 - Set a (random) contact name (e.g. github) in admin user config at http://localhost:8000/profile \n"
+  printf "\n\n\n\n\n"
+
 }
 
 _main
