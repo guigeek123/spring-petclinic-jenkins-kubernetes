@@ -16,7 +16,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   node('mypod') {
 
       parameters {
-          text(defaultValue: true, description: 'API Key for DefectDojo', name: 'defectdojo_apikey')
+          stringParam("DefectDojo API Key", "", "API Key for DefectDojo")
+          //text(defaultValue: true, description: 'API Key for DefectDojo', name: 'defectdojo_apikey')
       }
 
 
