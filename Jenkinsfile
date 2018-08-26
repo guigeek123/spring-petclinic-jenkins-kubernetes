@@ -26,6 +26,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Upload Reports to DefectDojo') {
           container('defectdojocli'){
+              sh('pip install requests')
               //TODO : check if pythonpath is not required
               //TODO : script to create the product in defectdojo
               //sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x createProductInDefectDojo.py && ./createProductInDefectDojo.py --api_key ${params.userFlag} --product_name ????? --user admin --host http://defectdojo:80")
