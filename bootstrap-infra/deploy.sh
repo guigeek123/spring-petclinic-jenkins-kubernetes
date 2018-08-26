@@ -120,13 +120,13 @@ _main() {
   printf "\nProvisioning development environment...."
 
   # Authorise google cloud SDK
-  #configure_gcp
+  configure_gcp
 
   # Create dedicated network within GCP
-  #create_network
+  create_network
 
   # Utilise terraform to provision the Google Cluster
-  #build_gcp_cluster
+  build_gcp_cluster
 
   # Install and configure Helm
   install_helm
@@ -152,7 +152,7 @@ _main() {
   printf "\nCompleted provisioning development environment!!\n\n"
 
   printf "\n\n\n\n\n"
-  printf "DON'T FORGET : Manual configuration for DEFECTDOJO is REQUIRED !!!!"
+  printf "DON'T FORGET : Manual configuration for DEFECTDOJO is REQUIRED !!!!\n"
   printf "1 - Get the API key from http://localhost:8000/api/key, to use it Jenkins pipeline parameter\n"
   printf "2 - Set a (random) contact name (e.g. github) in admin user config at http://localhost:8000/profile \n"
   printf "\n\n\n\n\n"
