@@ -1,7 +1,7 @@
 def project = 'kubepetclinic'
 def  appName = 'petclinic'
 def  feSvcName = "${appName}-frontend"
-def  imageTag = "gcr.io/${project}/${appName}:${env.BUILD_NUMBER}"
+def  imageTag = "${appName}:${env.BUILD_NUMBER}"
 def tempBucket = "${project}-${appName}-${env.BUILD_NUMBER}"
 
 podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
@@ -89,9 +89,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Deploy to Kube') {
           container('kubectl') {
-              //Get node internal ip to access nexus docker registry exposed as nodePort (nexus-direct-nodeport.yaml)
-              sh("export FIRST_NODE_IP=\$(kubectl get nodes -o jsonpath='{.items[1].status.addresses[?(@.type==\"InternalIP\")].address}')")
-              sh("sed -i.bak 's#NODEIP#\$FIRST_NODE_IP#' ./k8s/production/*.yaml")
+              //Get node internal ip to access nexus docker registry exposed as nodePort (nexus-direct-nodeport.yaml) and replace it yaml file
+              sh 'sed -i.bak \"s#NODEIP#$(kubectl get nodes -o jsonpath="{.items[1].status.addresses[?(@.type==\\"InternalIP\\")].address}")#\" ./k8s/production/*.yaml'
               //Write the image to be deployed in the yaml deployment file
               sh("sed -i.bak 's#CONTAINERNAME#${imageTag}#' ./k8s/production/*.yaml")
               //Personalizes the deployment file with application name
