@@ -87,6 +87,25 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       }
 
+      stage('Deploy to Kube') {
+          container('kubectl') {
+              //Get node internal ip to access nexus docker registry exposed as nodePort (nexus-direct-nodeport.yaml)
+              sh("export FIRST_NODE_IP=\$(kubectl get nodes -o jsonpath='{.items[1].status.addresses[?(@.type==\"InternalIP\")].address}')")
+              sh("sed -i.bak 's#NODEIP#\$FIRST_NODE_IP#' ./k8s/production/*.yaml")
+              //Write the image to be deployed in the yaml deployment file
+              sh("sed -i.bak 's#CONTAINERNAME#${imageTag}#' ./k8s/production/*.yaml")
+              //Personalizes the deployment file with application name
+              sh("sed -i.bak 's#appName#${appName}#' ./k8s/production/*.yaml")
+              sh("sed -i.bak 's#appName#${appName}#' ./k8s/services/frontend.yaml")
+              //Deploy application
+              sh("kubectl --namespace=production apply -f k8s/services/frontend.yaml")
+              sh("kubectl --namespace=production apply -f k8s/production/")
+              //Display access
+              // TODO : put back LoadBalancer deployment, and add a timer to wait for IP attribution
+              //sh("echo http://`kubectl --namespace=production get service/${feSvcName} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${feSvcName}")
+          }
+      }
+
 
   }  
 

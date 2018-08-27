@@ -1,5 +1,8 @@
 {
   "name":"docker",
   "type":"groovy",
-  "content":"repository.createDockerHosted('docker-private',8083,0);repository.createDockerProxy('docker-hub', 'https://registry-1.docker.io', 'HUB', null, 0, null);repository.createDockerGroup('docker-group', 8082, 0, ['docker-hub','docker-private'])"}"
+  "content":"configuration = repository.createHosted('docker-private','docker-hosted',org.sonatype.nexus.blobstore.api.BlobStoreManager.DEFAULT_BLOBSTORE_NAME,org.sonatype.nexus.repository.storage.WritePolicy.ALLOW, true);configuration.attributes.docker = repository.configureDockerAttributes(8083, 0,true);configuration.attributes.docker.forceBasicAuth=false;repository.createRepository(configuration);repository.createDockerProxy('docker-hub', 'https://registry-1.docker.io', 'HUB', null, 0, null);repository.createDockerGroup('docker-group', 8082, 0, ['docker-hub','docker-private']); realmManager = container.lookup(org.sonatype.nexus.security.realm.RealmManager.class.name); realmManager.enableRealm('DockerToken')"
 }
+
+
+

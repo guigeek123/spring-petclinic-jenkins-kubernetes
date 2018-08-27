@@ -88,6 +88,8 @@ build_nexus_server_with_helm() {
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
   kubectl apply -f nexus/nexus-direct-service.yaml
+  #Create a service nodeport to make docker registry available for image deployment in kubernetes (see configuration in deployment yaml)
+  kubectl apply -f nexus/nexus-direct-nodeport.yaml
 }
 
 build_sonar_server_with_helm() {
