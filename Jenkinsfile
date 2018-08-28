@@ -121,7 +121,6 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
            *
            * */
 
-          // For now : using a demo app
           container('kubectl') {
               // Create dedicated deployment yaml for testing in order not to be confused later with deployment in production
               sh 'mkdir ./k8s/testing/'
