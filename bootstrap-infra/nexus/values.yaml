@@ -1,4 +1,5 @@
 nexus:
+  imageTag: 3.13.0
   serviceType: ClusterIP
 
 persistence: 

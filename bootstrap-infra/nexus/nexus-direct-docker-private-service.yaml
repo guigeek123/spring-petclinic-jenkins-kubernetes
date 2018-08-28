@@ -6,22 +6,14 @@ metadata:
     chart: sonatype-nexus-1.5.1
     fullname: nexus-sonatype-nexus
     release: nexus
-  name: nexus-direct
+  name: nexus-direct-docker-private
 spec:
   type: ClusterIP
   ports:
-  - name: mavenport
-    port: 8081
-    protocol: TCP
-    targetPort: 8081
-  - name: dockergroupport
-    port: 8082
-    protocol: TCP
-    targetPort: 8082
-  - name: dockerprivateport
-    port: 8083
+  - port: 8083
     protocol: TCP
     targetPort: 8083
   selector:
     app: sonatype-nexus
     release: nexus
+# TODO : set multi port to open 8081 (maven), 8082 (docker proxy registry) and 8083 (docker private registry)

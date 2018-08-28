@@ -16,6 +16,7 @@ validate_environment() {
 
  command -v gcloud >/dev/null 2>&1 || { echo >&2 "Google Cloud SDK required - doesn't seem to be on your path.  Aborting."; exit 1; }
  command -v kubectl >/dev/null 2>&1 || { echo >&2 "Kubernetes commands required - doesn't seem to be on your path.  Aborting."; exit 1; }
+ command -v curl >/dev/null 2>&1 || { echo >&2 "Curl commands required - doesn't seem to be on your path.  Aborting."; exit 1; }
 
  printf "\nAll pre-requisite software seem to be installed :)"
 }
@@ -77,6 +78,8 @@ install_helm() {
 build_jenkins_server_with_helm() {
   printf "\nInstalling jenkins with Helm ...."
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
+  printf "\nCreating persistent directory for local .m2 ...."
+  kubectl apply -f jenkins/maven-with-cache-pvc.yaml
 
 }  
 
@@ -85,6 +88,8 @@ build_nexus_server_with_helm() {
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
   kubectl apply -f nexus/nexus-direct-service.yaml
+  #Create a service nodeport to make docker registry available for image deployment in kubernetes (see configuration in deployment yaml)
+  kubectl apply -f nexus/nexus-direct-nodeport.yaml
 }
 
 build_sonar_server_with_helm() {
@@ -99,6 +104,17 @@ build_zap_server() {
     kubectl apply -f zap/service-zap.yaml
 }
 
+build_clair_server_with_helm() {
+  printf "\nInstalling clair with Helm...."
+  #cd boostrap-infra/
+  ./helm dependency update clair
+  ./helm install -n clair clair -f clair/values.yaml
+  #cd $BASE_DIR
+  printf "\nCreating configmap for kaniko to push Docker image on Nexus...."
+  printf "\nWARNING SECU : Nexus password encoded in Base64 only..."
+  kubectl create configmap docker-config --from-file=kaniko/config.json
+}
+
 
 create_namespaces() {
   printf "\nCreate namespaces\n"
@@ -107,6 +123,17 @@ create_namespaces() {
 
 }
 
+configure_nexus() {
+  #Create access to nexus POD
+  #TODO : it assumes that nexus POD has had the time to start... make a proper script to check it
+  ./access_nexus.sh
+  while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081)" != "200" ]]; do sleep 5; done
+  #TODO : manage nexus password.. (e.g. : script sh to generate a random password, push to nexus, push it to kubernetes secret for later use, and configure associated parts : maven and kaniko within POD Templates in Jenkinsfile)
+  curl -u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/createDockerRepo.json
+  curl -X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/docker/run'
+  #curl -u admin:admin123 -X DELETE http://localhost:8081/service/rest/v1/script/docker
+
+}
 
 _main() {
 
@@ -138,10 +165,15 @@ _main() {
   # Setup ZAP server
   build_zap_server
 
+  # Set up clair
+  build_clair_server_with_helm
+
+  # Creates docker repo within Nexus
+  configure_nexus
+
   # Creates Namespaces for later usage
   create_namespaces
 
-  printf "\nCompleted provisioning development environment!!\n\n"
 }
 
 _main

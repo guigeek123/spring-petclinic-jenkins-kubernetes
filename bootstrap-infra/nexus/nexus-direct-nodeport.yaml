@@ -1,27 +1,20 @@
 apiVersion: v1
 kind: Service
-metadata: 
+metadata:
   labels:
     app: sonatype-nexus
     chart: sonatype-nexus-1.5.1
     fullname: nexus-sonatype-nexus
     release: nexus
-  name: nexus-direct
+  name: nexus-direct-nodeport
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
-  - name: mavenport
-    port: 8081
-    protocol: TCP
-    targetPort: 8081
-  - name: dockergroupport
-    port: 8082
-    protocol: TCP
-    targetPort: 8082
   - name: dockerprivateport
     port: 8083
     protocol: TCP
     targetPort: 8083
+    nodePort: 30083
   selector:
     app: sonatype-nexus
     release: nexus

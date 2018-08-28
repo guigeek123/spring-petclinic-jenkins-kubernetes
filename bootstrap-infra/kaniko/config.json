@@ -1,0 +1,7 @@
+{
+  "auths": {
+    "nexus-direct:8083": {
+      "auth": "YWRtaW46YWRtaW4xMjM="
+    }
+  }
+}
