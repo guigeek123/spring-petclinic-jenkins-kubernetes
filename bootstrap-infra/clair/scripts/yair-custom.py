@@ -156,7 +156,7 @@ def get_image_info():
     req_result = y_req(req_url, "get", h=req_headers)
 
     with open('clair-results.json', 'w') as f:
-        f.write(req_result)
+        f.write(req_result.text)
 
     data = req_result.json()
     if 'Features' not in data['Layer']:
