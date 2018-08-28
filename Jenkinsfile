@@ -92,7 +92,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               // TODO : Show an information on jenkins to say that the gate is not OK but not block the build
           } finally {
               // Move JSON report to be uploaded later in defectdojo
-              sh "mkdir reports && mkdir reports/clair && mv clair-results.json reports/clair/"
+              sh "mkdir reports && mkdir reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
           }
 
       }
