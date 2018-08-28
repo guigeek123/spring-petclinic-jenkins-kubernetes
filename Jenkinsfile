@@ -167,7 +167,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
                   // Move XML report to be uploaded later in defectdojo
-                  sh "mkdir reports/zap && mv zap-results.xml reports/zap/"
+                  sh "mkdir reports/zap && mv bootstrap-infra/zap/scripts/zap-results.xml reports/zap/"
 
                   // Analysing results using behave
                   sh 'cd bootstrap-infra/zap/scripts/ && behave'
