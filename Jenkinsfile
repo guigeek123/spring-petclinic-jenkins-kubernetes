@@ -87,11 +87,12 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   // Publish Clair Html Report into Jenkins (jenkins plugin required)
                   // publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
-                  // Move JSON report to be uploaded later in defectdojo
-                  sh "mkdir reports && mkdir reports/clair && mv clair-results.json reports/clair/"
               }
           } catch (all) {
-              // TODO : ??????
+              // TODO : Show an information on jenkins to say that the gate is not OK but not block the build
+          } finally {
+              // Move JSON report to be uploaded later in defectdojo
+              sh "mkdir reports && mkdir reports/clair && mv clair-results.json reports/clair/"
           }
 
       }
