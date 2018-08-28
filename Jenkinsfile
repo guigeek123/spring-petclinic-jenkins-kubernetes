@@ -8,7 +8,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'zapcli', image: 'python:3.7-alpine', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
@@ -87,6 +87,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   // Publish Clair Html Report into Jenkins (jenkins plugin required)
                   // publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
+                  // Move JSON report to be uploaded later in defectdojo
+                  sh "mkdir reports && mkdir reports/clair && mv clair-results.json reports/clair/"
               }
           } catch (all) {
               // TODO : ??????
@@ -162,6 +164,9 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
                   // Publish ZAP Html Report into Jenkins (jenkins plugin required)
                   publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
+
+                  // Move XML report to be uploaded later in defectdojo
+                  sh "mkdir reports/zap && mv zap-results.xml reports/zap/"
 
                   // Analysing results using behave
                   sh 'cd bootstrap-infra/zap/scripts/ && behave'

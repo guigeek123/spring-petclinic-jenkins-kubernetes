@@ -155,6 +155,9 @@ def get_image_info():
     req_headers = {'Content-Type': 'application/json'}
     req_result = y_req(req_url, "get", h=req_headers)
 
+    with open('clair-results.json', 'w') as f:
+        f.write(req_result)
+
     data = req_result.json()
     if 'Features' not in data['Layer']:
         print("could not find any package in the given image", file=sys.stderr)

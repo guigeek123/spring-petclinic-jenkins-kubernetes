@@ -80,6 +80,9 @@ def main():
     with open('results.html', 'w') as f:
         f.write(zap.core.htmlreport())
 
+    with open('zap-results.xml', 'w') as f:
+        f.write(zap.core.xmlreport())
+
     # Cleaning up results on ZAP server side
     #sys.stdout.write('Deleting results on server side\n')
     #zap.core.delete_all_alerts()
