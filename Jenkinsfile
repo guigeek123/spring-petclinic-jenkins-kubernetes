@@ -24,12 +24,14 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Run Sonar analysis') {
           container('maven') {
+              //TODO : Manage secret using kubernetes secrets
               sh 'mvn -s maven-custom-settings clean verify sonar:sonar'
           }
       }
 
       stage('Build with Maven and push artifact to Nexus') {
           container('maven') {
+              //TODO : Manage secret using kubernetes secrets
               sh 'mvn -s maven-custom-settings clean deploy -DskipTests'
           }
       }
@@ -45,6 +47,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
           container('gcloud'){
               //Creates a bucket to give context to kaniko for docker image building
+              //TODO : remove usage of buckets to erase dependency with google cloud
               sh "gsutil mb -c nearline gs://${tempBucket}"
               sh 'tar -C . -zcvf /tmp/context/context.tar.gz .'
               sh "gsutil cp /tmp/context/context.tar.gz gs://${tempBucket}"
@@ -166,6 +169,9 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   // Publish ZAP Html Report into Jenkins (jenkins plugin required)
                   publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
+                  // Move XML report to be uploaded later in defectdojo
+                  sh "mkdir reports/zap && mv bootstrap-infra/zap/scripts/zap-results.xml reports/zap/"
+
                   // Analysing results using behave
                   sh 'cd bootstrap-infra/zap/scripts/ && behave'
               }
@@ -186,7 +192,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           container('defectdojocli'){
               sh('pip install requests')
               withCredentials([string(credentialsId: 'defefectdojo_apikey', variable: 'defectdojo_apikey')]) {
-                  sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir reportsdemo/")
+                  sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir ../../../reports/")
               }
           }
       }
