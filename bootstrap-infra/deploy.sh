@@ -78,8 +78,6 @@ install_helm() {
 build_jenkins_server_with_helm() {
   printf "\nInstalling jenkins with Helm ...."
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
-  printf "\nCreating persistent directory for local .m2 ...."
-  kubectl apply -f jenkins/maven-with-cache-pvc.yaml
 
 }  
 
@@ -88,8 +86,6 @@ build_nexus_server_with_helm() {
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
   kubectl apply -f nexus/nexus-direct-service.yaml
-  #Create a service nodeport to make docker registry available for image deployment in kubernetes (see configuration in deployment yaml)
-  kubectl apply -f nexus/nexus-direct-nodeport.yaml
 }
 
 build_sonar_server_with_helm() {
@@ -113,6 +109,12 @@ build_clair_server_with_helm() {
   printf "\nCreating configmap for kaniko to push Docker image on Nexus...."
   printf "\nWARNING SECU : Nexus password encoded in Base64 only..."
   kubectl create configmap docker-config --from-file=kaniko/config.json
+}
+
+build_defectdojo_server() {
+    printf "\nInstalling DefectDojo ..."
+    kubectl apply -f defectdojo/k8s/deployment-defectdojo.yaml
+    kubectl apply -f defectdojo/k8s/service-defectdojo.yaml
 }
 
 
@@ -168,11 +170,24 @@ _main() {
   # Set up clair
   build_clair_server_with_helm
 
+  # Setup DefectDojo
+  build_defectdojo_server
+
   # Creates docker repo within Nexus
   configure_nexus
 
   # Creates Namespaces for later usage
   create_namespaces
+
+  printf "\nCompleted provisioning development environment!!\n\n"
+
+  printf "\n\n\n\n\n"
+  printf "DON'T FORGET : Manual configuration for DEFECTDOJO is REQUIRED !!!!\n"
+  printf "1 - Get the API key from http://localhost:8000/api/key, to use it Jenkins credential, with ID name 'defectdojo_apikey' \n"
+  printf "2 - Set a (random) contact name (e.g. github section) in admin user config at http://localhost:8000/profile \n"
+  printf "3 - Go to system settings (http://localhost:8000/system_settings) and activate 'Deduplicate findings' and 'Delete duplicates' options"
+  printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in Jenkinsfile (stage 'Upload Reports to DefectDojo) by default) \n"
+  printf "\n\n\n\n\n"
 
 }
 

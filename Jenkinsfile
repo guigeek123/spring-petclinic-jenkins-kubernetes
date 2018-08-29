@@ -9,7 +9,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat')
+  containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
         emptyDirVolume(mountPath: '/tmp/context/', memory: false)
@@ -35,7 +36,6 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       stage('Download Artifact from Nexus') {
           container('maven') {
-              //Moving into subdirectory to avoid maven using the POM.XML of the project (makes it fail...)
               sh 'mkdir targetDocker'
               sh 'cd targetDocker && mvn -s ../maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'
           }
@@ -97,6 +97,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       }
 
+
       stage('DAST with ZAP') {
           /**
            * This step deploys the application into a namespace dedicated to test ("testing")
@@ -145,7 +146,6 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh 'kubectl apply -f ./k8s/services/internamespace-frontend.yaml'
           }
 
-
           // Execute scan and analyse results
           try {
               container('zapcli') {
@@ -166,9 +166,6 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   // Publish ZAP Html Report into Jenkins (jenkins plugin required)
                   publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
-                  // Move XML report to be uploaded later in defectdojo
-                  sh "mkdir reports/zap && mv bootstrap-infra/zap/scripts/zap-results.xml reports/zap/"
-
                   // Analysing results using behave
                   sh 'cd bootstrap-infra/zap/scripts/ && behave'
               }
@@ -182,6 +179,15 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh "kubectl delete service ${appName}-frontend-defaultns"
               sh "kubectl delete deployment ${appName}-frontend-deployment --namespace=testing"
               sh "kubectl delete service ${appName}-frontend --namespace=testing"
+          }
+      }
+
+      stage('Upload Reports to DefectDojo') {
+          container('defectdojocli'){
+              sh('pip install requests')
+              withCredentials([string(credentialsId: 'defefectdojo_apikey', variable: 'defectdojo_apikey')]) {
+                  sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir reportsdemo/")
+              }
           }
       }
 
