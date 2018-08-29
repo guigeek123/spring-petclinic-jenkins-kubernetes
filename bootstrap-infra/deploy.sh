@@ -156,7 +156,7 @@ _main() {
   printf "1 - Get the API key from http://localhost:8000/api/key, to use it Jenkins credential, with ID name 'defectdojo_apikey' \n"
   printf "2 - Set a (random) contact name (e.g. github section) in admin user config at http://localhost:8000/profile \n"
   printf "3 - Go to system settings (http://localhost:8000/system_settings) and activate 'Deduplicate findings' and 'Delete duplicates' options"
-  printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in DefectDojo jenkins stage by default) \n"
+  printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in Jenkinsfile (stage 'Upload Reports to DefectDojo) by default) \n"
   printf "\n\n\n\n\n"
 
 }

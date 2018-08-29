@@ -28,19 +28,9 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
       stage('Upload Reports to DefectDojo') {
           container('defectdojocli'){
               sh('pip install requests')
-              //TODO : check if pythonpath is not required
-              //TODO : script to create the product in defectdojo
-              //sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x createProductInDefectDojo.py && ./createProductInDefectDojo.py --api_key ${env.defectdojo_apikey} --product_name ????? --user admin --host http://defectdojo:80")
               withCredentials([string(credentialsId: 'defefectdojo_apikey', variable: 'defectdojo_apikey')]) {
-                  if (${defectdojo_apikey}!=null) {
-                      sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir reportsdemo/")
-                  } else {
-                      sh("DEFECTDOJO API KEY IS NOT SET IN JENKINS ----> Reports cannot be exported to DefectDojo")
-                  }
-
+                  sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir reportsdemo/")
               }
-
-
           }
       }
 
