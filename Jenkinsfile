@@ -191,7 +191,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
       stage('Upload Reports to DefectDojo') {
           container('defectdojocli'){
               sh('pip install requests')
-              withCredentials([string(credentialsId: 'defefectdojo_apikey', variable: 'defectdojo_apikey')]) {
+              withCredentials([string(credentialsId: 'defectdojo_apikey', variable: 'defectdojo_apikey')]) {
                   sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir ../../../reports/")
               }
           }
