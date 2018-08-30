@@ -1,6 +1,6 @@
 #!/bin/bash
 
-printf "\n Setting up port forwarding to nexus ..."
+printf "\n Setting up port forwarding for petclinic ..."
 
 export APP_POD_NAME=$(kubectl get pods -l "app=petclinic" -o jsonpath="{.items[0].metadata.name}" --namespace=production)
 kubectl port-forward $APP_POD_NAME 8180:8080 --namespace=production>> /dev/null &

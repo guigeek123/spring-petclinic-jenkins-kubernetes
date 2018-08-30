@@ -6,4 +6,4 @@ export DEFECTDOJO_POD_NAME=$(kubectl get pods -l "app=defectdojo" -o jsonpath="{
 kubectl port-forward $DEFECTDOJO_POD_NAME 8000:8000 >> /dev/null &
 
 
-printf "\nPort forwarding OK"
+#printf "\nPort forwarding OK"

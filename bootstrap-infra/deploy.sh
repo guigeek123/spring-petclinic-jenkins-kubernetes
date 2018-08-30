@@ -9,6 +9,11 @@ GCP_MACHINE_TYPE=${3:-n1-standard-2}
 NUM_NODES=${4:-3}
 #SERVICE_ACCOUNT_FILE=${5:-./service_account.json}
 
+warning_disclaimer() {
+  printf "\nIn case of a FIRST RUN, please quit and configure gcloud client with the following command :\n"
+  printf "gcloud auth login\n\n"
+}
+
 validate_environment() {
   # Check pre-requisites for required command line tools
 
@@ -132,7 +137,7 @@ create_namespaces() {
 configure_nexus() {
   #Create access to nexus POD
   #TODO : it assumes that nexus POD has had the time to start... make a proper script to check it
-  ./access_nexus.sh
+  access-scripts/access_nexus.sh
   while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081)" != "200" ]]; do sleep 5; done
   #TODO : manage nexus password.. (e.g. : script sh to generate a random password, push to nexus, push it to kubernetes secret for later use, and configure associated parts : maven and kaniko within POD Templates in Jenkinsfile)
   curl -u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/createDockerRepo.json
@@ -141,7 +146,21 @@ configure_nexus() {
 
 }
 
+access_main_apps() {
+
+  access-scripts/access_defectdojo.sh
+  access-scripts/access_jenkins.sh
+
+  # Jenkins
+  sensible-browser "http://localhost:8080/"
+
+  # DefectDojo
+  sensible-browser "http://localhost:8000/"
+}
+
 _main() {
+
+  warning_disclaimer
 
   validate_environment
 
@@ -185,13 +204,46 @@ _main() {
 
   printf "\nCompleted provisioning development environment!!\n\n"
 
-  printf "\n\n\n\n\n"
-  printf "DON'T FORGET : Manual configuration for DEFECTDOJO is REQUIRED !!!!\n"
+  printf "Default login / passwords :\n"
+  printf " Jenkins :\n"
+  printf "   - Login : admin\n"
+  printf "   - Password : will be displayed in this terminal in 5s\n"
+  printf " DefectDojo :\n"
+  printf "   - Login : admin\n"
+  printf "   - Password : admin\n"
+  printf " Nexus :\n"
+  printf "   - Login : admin\n"
+  printf "   - Password : admin123\n"
+  printf " Sonar :\n"
+  printf "   - Login : admin\n"
+  printf "   - Password : admin\n\n"
+
+  printf "\n\n WARNING  : PLEASE READ WITH ATTENTION"
+  printf "\n\n"
+  printf "DON'T FORGET 1 : Manual configuration for DEFECTDOJO is REQUIRED !!!!\n"
   printf "1 - Get the API key from http://localhost:8000/api/key, to use it Jenkins credential, with ID name 'defectdojo_apikey' \n"
   printf "2 - Set a (random) contact name (e.g. github section) in admin user config at http://localhost:8000/profile \n"
   printf "3 - Go to system settings (http://localhost:8000/system_settings) and activate 'Deduplicate findings' and 'Delete duplicates' options"
   printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in Jenkinsfile (stage 'Upload Reports to DefectDojo) by default) \n"
-  printf "\n\n\n\n\n"
+  printf "\n\n"
+  printf "DON'T FORGET 2 : SONAR Configuration !!!!\n"
+  printf "1 - WHEN SONAR IS STABLE (kubectl get pods), run ./configure-sonar.sh script\n"
+  printf "\n\n\n"
+
+
+  printf "Accessing main apps to be configured in 5s "
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+
+  access_main_apps
 
 }
 
