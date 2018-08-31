@@ -127,6 +127,11 @@ build_defectdojo_server() {
     kubectl apply -f defectdojo/k8s/service-defectdojo.yaml
 }
 
+build_ddtrack() {
+    printf "\nInstalling Dependency Track ..."
+    kubectl apply -f dependency-track/deployment-ddtrack.yaml
+    kubectl apply -f dependency-track/service-ddtrack.yaml
+}
 
 create_namespaces() {
   printf "\nCreate namespaces\n"
@@ -196,6 +201,8 @@ _main() {
 
   # Setup DefectDojo
   build_defectdojo_server
+
+  build_ddtrack
 
   # Creates docker repo within Nexus
   configure_nexus

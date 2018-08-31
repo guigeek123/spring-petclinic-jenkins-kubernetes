@@ -29,6 +29,9 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
               sh 'mkdir reports && reports/dependency && mv target/dependency-check-report.xml reports/dependency/'
               publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/', reportFiles: 'dependency-check-report.html', reportName: 'Dependency-Check Report', reportTitles: ''])
+              //publish to dependency check
+              //dependencyCheckPublisher canComputeNew: false, defaultEncoding: '', healthy: '', pattern: 'target/dependency-check-report.xml', unHealthy: ''
+              dependencyTrackPublisher projectId: '213e1c7c-74c1-48da-b5a2-dcbc7a356082', scanResult: 'target/dependency-check-report.xml'
           }
       }
 

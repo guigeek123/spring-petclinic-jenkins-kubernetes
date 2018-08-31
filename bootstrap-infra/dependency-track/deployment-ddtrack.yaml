@@ -1,0 +1,19 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: ddtrack
+spec:
+  replicas:
+  template:
+    metadata:
+      name: ddtrack
+      labels:
+        app: ddtrack
+    spec:
+      containers:
+      - name: ddtrack-container
+        image: owasp/dependency-track:3.1.1
+        imagePullPolicy: Always
+        ports:
+        - name: ddtrack-port
+          containerPort: 8080
