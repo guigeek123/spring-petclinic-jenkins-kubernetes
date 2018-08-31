@@ -85,6 +85,8 @@ build_jenkins_server_with_helm() {
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
   printf "\nCreating persistent directory for local .m2 ...."
   kubectl apply -f jenkins/maven-with-cache-pvc.yaml
+  printf "\nCreating persistent directory for NVD database (dependency-check) ...."
+  #kubectl apply -f jenkins/nvd-cache-pvc.yaml
 
 }  
 
