@@ -10,7 +10,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
+  containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'ddtrackcli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
         emptyDirVolume(mountPath: '/tmp/context/', memory: false)
@@ -33,6 +34,12 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //publish to dependency check
               //dependencyCheckPublisher canComputeNew: false, defaultEncoding: '', healthy: '', pattern: 'target/dependency-check-report.xml', unHealthy: ''
               dependencyTrackPublisher projectId: '213e1c7c-74c1-48da-b5a2-dcbc7a356082', scanResult: 'target/dependency-check-report.xml'
+          }
+
+          container('ddtrackcli') {
+              withCredentials([string(credentialsId: 'defectdojo_apikey', variable: 'ddtrack_apikey')]) {
+                  sh("bootstrap-infra/dependency-track/scripts/ddtrack-cli.py -k ${env.ddtrack_apikey} -x target/dependency-check-report.xml -p ${project} -u http://ddtrack-service:8080")
+              }
           }
       }
 
@@ -102,7 +109,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               // TODO : Show an information on jenkins to say that the gate is not OK but not block the build
           } finally {
               // Move JSON report to be uploaded later in defectdojo
-              sh "mkdir reports && mkdir reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
+              sh "mkdir reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
           }
 
       }

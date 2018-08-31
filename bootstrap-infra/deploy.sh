@@ -234,7 +234,11 @@ _main() {
   printf "3 - Go to system settings (http://localhost:8000/system_settings) and activate 'Deduplicate findings' and 'Delete duplicates' options"
   printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in Jenkinsfile (stage 'Upload Reports to DefectDojo) by default) \n"
   printf "\n\n"
-  printf "DON'T FORGET 2 : SONAR Configuration !!!!\n"
+  printf "DON'T FORGET 2 : Manual configuration for DEPENDENCY CHECK IS REQUIRED !!!!\n"
+  printf "1 - Get the API key from the 'automation' account to use it Jenkins credential, with ID name 'ddtrack_apikey' \n"
+  printf "2 - Give the 'PORTFOLIO_MANAGEMENT' access right to the 'automation' account (ability to create projects)"
+  printf "\n\n"
+  printf "DON'T FORGET 3 : SONAR Configuration !!!!\n"
   printf "1 - WHEN SONAR IS STABLE (kubectl get pods), run ./configure-sonar.sh script\n"
   printf "\n\n\n"
 
