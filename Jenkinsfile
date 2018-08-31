@@ -27,7 +27,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //TODO : Manage secret using kubernetes secrets
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
               sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
-              sh 'mkdir reports && reports/dependency && mv target/dependency-check-report.xml reports/dependency/'
+              sh 'mkdir reports && mkdir reports/dependency && mv target/dependency-check-report.xml reports/dependency/'
+              sh 'chmod 777 reports'
               publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/', reportFiles: 'dependency-check-report.html', reportName: 'Dependency-Check Report', reportTitles: ''])
               //publish to dependency check
               //dependencyCheckPublisher canComputeNew: false, defaultEncoding: '', healthy: '', pattern: 'target/dependency-check-report.xml', unHealthy: ''
@@ -101,7 +102,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               // TODO : Show an information on jenkins to say that the gate is not OK but not block the build
           } finally {
               // Move JSON report to be uploaded later in defectdojo
-              sh "mkdir reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
+              sh "mkdir reports && mkdir reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
           }
 
       }
