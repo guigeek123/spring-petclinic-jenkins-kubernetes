@@ -27,7 +27,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //TODO : Manage secret using kubernetes secrets
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
               sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
-              sh 'mkdir -p reports/dependency && mv target/dependency-check-report.xml reports/dependency/'
+              sh 'mkdir reports && reports/dependency && mv target/dependency-check-report.xml reports/dependency/'
               publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/', reportFiles: 'dependency-check-report.html', reportName: 'Dependency-Check Report', reportTitles: ''])
           }
       }
@@ -98,7 +98,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               // TODO : Show an information on jenkins to say that the gate is not OK but not block the build
           } finally {
               // Move JSON report to be uploaded later in defectdojo
-              sh "mkdir -p reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
+              sh "mkdir reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
           }
 
       }
@@ -173,7 +173,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
                   publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
                   // Move XML report to be uploaded later in defectdojo
-                  sh "mkdir -p reports/zap && mv bootstrap-infra/zap/scripts/zap-results.xml reports/zap/"
+                  sh "mkdir reports/zap && mv bootstrap-infra/zap/scripts/zap-results.xml reports/zap/"
 
                   // Analysing results using behave
                   sh 'cd bootstrap-infra/zap/scripts/ && behave'

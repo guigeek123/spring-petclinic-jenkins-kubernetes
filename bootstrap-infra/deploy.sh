@@ -86,7 +86,6 @@ build_jenkins_server_with_helm() {
   printf "\nCreating persistent directory for local .m2 ...."
   kubectl apply -f jenkins/maven-with-cache-pvc.yaml
   printf "\nCreating persistent directory for NVD database (dependency-check) ...."
-  #kubectl apply -f jenkins/nvd-cache-pvc.yaml
 
 }  
 
