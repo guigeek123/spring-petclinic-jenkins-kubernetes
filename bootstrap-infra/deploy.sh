@@ -127,7 +127,9 @@ build_defectdojo_server() {
     kubectl apply -f defectdojo/k8s/service-defectdojo.yaml
 }
 
-build_ddtrack() {
+build_ddtrack_server() {
+    printf "\nCreating persistent disk for Dependency Track config..."
+    kubectl apply -f dependency-track/ddtrack-cache-pvc.yaml
     printf "\nInstalling Dependency Track ..."
     kubectl apply -f dependency-track/deployment-ddtrack.yaml
     kubectl apply -f dependency-track/service-ddtrack.yaml
@@ -202,7 +204,8 @@ _main() {
   # Setup DefectDojo
   build_defectdojo_server
 
-  build_ddtrack
+  # Set Up Dependency Track server
+  build_ddtrack_server
 
   # Creates docker repo within Nexus
   configure_nexus

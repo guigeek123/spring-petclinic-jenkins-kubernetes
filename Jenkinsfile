@@ -29,6 +29,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
               sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
               sh 'mkdir reports && mkdir reports/dependency && cp target/dependency-check-report.xml reports/dependency/'
+              // WARNING SECURITY : Change permission to make other container able to move reports in that directory (to be patched)
               sh 'chmod 777 reports'
               publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/', reportFiles: 'dependency-check-report.html', reportName: 'Dependency-Check Report', reportTitles: ''])
           }
@@ -49,7 +50,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
       }
 
 
-      stage('Build with Kaniko and push image to Nexus Repo') {
+      stage('Build image with Kaniko') {
 
           container('maven') {
               sh 'mkdir targetDocker'
