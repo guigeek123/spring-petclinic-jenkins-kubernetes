@@ -11,7 +11,7 @@ import argparse
 import base64
 import time
 
-def ddtrack_connection(host, api_key, proxy):
+def ddtrack_connection(host, api_key, proxy, debug=False):
     #Optionally, specify a proxy
     proxies = None
     if proxy:
@@ -21,13 +21,14 @@ def ddtrack_connection(host, api_key, proxy):
         }
 
     # Instantiate the Dependency Track api wrapper
-    dt = ddtrack.DDTrackAPI(host, api_key, proxies=proxies, verify_ssl=False, timeout=360, debug=False)
+    dt = ddtrack.DDTrackAPI(host, api_key, proxies=proxies, verify_ssl=False, timeout=360, debug=debug)
 
     return dt
 
 
 def findProjectId(dt, projectName):
     """Return the id of the first found project with a given name.
+    If no project is found, try to create one.
     NOTE : does not manage version for now.
 
     :param project_name: Name of the project to be searched
@@ -44,7 +45,7 @@ def findProjectId(dt, projectName):
     response = dt.create_project(projectName,"1")
     if response.success == False:
         print(response.message)
-        exit('ERROR : project does not exist and service account does have privilege to create it')
+        exit('ERROR : project does not exist and service account does not have privilege to create it')
 
     time.sleep(5)
 
@@ -90,6 +91,8 @@ class Main:
                             default='http://nexus-direct:8082', dest='projectName')
         parser.add_argument('-x', '--xml-report-path', help='Project Name in Dependency Check XML Report file path',
                             default='target/dependency-check-report.xml', dest='reportFilePath')
+        parser.add_argument('-d', '--debug', help='Activate python api debug',
+                            default='False', dest='debug')
         #parser.add_argument('-j', '--json-payload', help='JSON Payload file (preprocessed)',
         #                    default='', dest='jsonFilePath')
 
@@ -100,9 +103,10 @@ class Main:
         apiKey = args["apiKey"]
         projectName = args["projectName"]
         reportFilePath = args["reportFilePath"]
+        debug = args["debug"]
         #jsonFilePath = args["jsonFilePath"]
 
-        dt = ddtrack_connection(url, apiKey, proxy=None)
+        dt = ddtrack_connection(url, apiKey, proxy=None, debug=debug)
 
         projectId = findProjectId(dt, projectName)
         payload = generateJsonPayload(projectId, reportFilePath)

@@ -6,7 +6,7 @@ BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../ && pwd )"
 GCP_PROJECT=${1:-kubepetclinic}
 GCP_ZONE=${2:-europe-west1-b}
 GCP_MACHINE_TYPE=${3:-n1-standard-2}
-NUM_NODES=${4:-3}
+NUM_NODES=${4:-4}
 #SERVICE_ACCOUNT_FILE=${5:-./service_account.json}
 
 warning_disclaimer() {
