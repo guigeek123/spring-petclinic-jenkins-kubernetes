@@ -10,10 +10,27 @@ spec:
       labels:
         app: ddtrack
     spec:
+      initContainers:
+      - name: volume-mount-hack
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /data"]
+        volumeMounts:
+        - name: ddtrackdata
+          mountPath: /data
       containers:
       - name: ddtrack-container
         image: owasp/dependency-track:3.1.1
+        resources:
+          limits:
+            memory: "3Gi"
         imagePullPolicy: Always
         ports:
         - name: ddtrack-port
           containerPort: 8080
+        volumeMounts:
+        - name: ddtrackdata
+          mountPath: /data
+      volumes:
+      - name: ddtrackdata
+        persistentVolumeClaim:
+          claimName: ddtrackdata
