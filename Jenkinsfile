@@ -35,7 +35,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
           container('ddtrackcli') {
               sh('pip install requests')
-              withCredentials([string(credentialsId: 'defectdojo_apikey', variable: 'ddtrack_apikey')]) {
+              withCredentials([string(credentialsId: 'ddtrack_apikey', variable: 'ddtrack_apikey')]) {
                   sh("bootstrap-infra/dependency-track/scripts/ddtrack-cli.py -k ${env.ddtrack_apikey} -x target/dependency-check-report.xml -p ${project} -u http://ddtrack-service")
               }
           }

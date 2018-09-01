@@ -229,7 +229,7 @@
               <activeByDefault>true</activeByDefault>
           </activation>
           <properties>
-              <ddCheckActivate>none</ddCheckActivate>
+              <ddCheckActivated>none</ddCheckActivated>
           </properties>
       </profile>
       <profile>
