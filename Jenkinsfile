@@ -23,7 +23,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           checkout scm
       }
 
-      stage('Run Sonar analysis') {
+      stage('Sonar and Dependency-Check') {
           container('maven') {
               //TODO : Manage secret using kubernetes secrets
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
@@ -41,21 +41,20 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           }
       }
 
-      stage('Build with Maven and push artifact to Nexus') {
+      stage('Build Docker Image') {
           container('maven') {
               //TODO : Manage secret using kubernetes secrets
               sh 'mvn -s maven-custom-settings clean deploy -DskipTests'
           }
       }
 
-      stage('Download Artifact from Nexus') {
+
+      stage('Build with Kaniko and push image to Nexus Repo') {
+
           container('maven') {
               sh 'mkdir targetDocker'
               sh 'cd targetDocker && mvn -s ../maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'
           }
-      }
-
-      stage('Build with Kaniko and push image to Nexus Repo') {
 
           container('gcloud'){
               //Creates a bucket to give context to kaniko for docker image building
@@ -86,7 +85,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
       }
 
-      stage('Analyse Docker image with CLAIR') {
+      stage('Scan image with CLAIR') {
           // Execute scan and analyse results
           try {
               container('claircli') {
