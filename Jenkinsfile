@@ -28,7 +28,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //TODO : Manage secret using kubernetes secrets
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
               sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
-              sh 'mkdir reports && mkdir reports/dependency && mv target/dependency-check-report.xml reports/dependency/'
+              sh 'mkdir reports && mkdir reports/dependency && cp target/dependency-check-report.xml reports/dependency/'
               sh 'chmod 777 reports'
               publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/', reportFiles: 'dependency-check-report.html', reportName: 'Dependency-Check Report', reportTitles: ''])
           }
