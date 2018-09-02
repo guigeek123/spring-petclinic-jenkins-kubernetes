@@ -227,6 +227,9 @@ _main() {
   printf "   - Password : admin123\n"
   printf " Sonar :\n"
   printf "   - Login : admin\n"
+  printf "   - Password : admin\n"
+  printf " Dependency Track :\n"
+  printf "   - Login : admin\n"
   printf "   - Password : admin\n\n"
 
   printf "\n\n WARNING  : PLEASE READ WITH ATTENTION"
@@ -237,7 +240,7 @@ _main() {
   printf "3 - Go to system settings (http://localhost:8000/system_settings) and activate 'Deduplicate findings' and 'Delete duplicates' options"
   printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in Jenkinsfile (stage 'Upload Reports to DefectDojo) by default) \n"
   printf "\n\n"
-  printf "DON'T FORGET 2 : Manual configuration for DEPENDENCY CHECK IS REQUIRED !!!!\n"
+  printf "DON'T FORGET 2 : Manual configuration for DEPENDENCY TRACK IS REQUIRED !!!!\n"
   printf "1 - Get the API key from the 'automation' account to use it Jenkins credential, with ID name 'ddtrack_apikey' \n"
   printf "2 - Give the 'PORTFOLIO_MANAGEMENT' access right to the 'automation' account (ability to create projects)"
   printf "\n\n"

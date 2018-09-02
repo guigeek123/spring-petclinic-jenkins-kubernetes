@@ -21,6 +21,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   node('mypod') {
       stage('Checkout') {
           checkout scm
+          //git branch: 'mergeAll', url: 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
       }
 
       stage('Sonar and Dependency-Check') {
@@ -34,11 +35,16 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/', reportFiles: 'dependency-check-report.html', reportName: 'Dependency-Check Report', reportTitles: ''])
           }
 
-          container('ddtrackcli') {
-              sh('pip install requests')
+
+          try {
               withCredentials([string(credentialsId: 'ddtrack_apikey', variable: 'ddtrack_apikey')]) {
-                  sh("bootstrap-infra/dependency-track/scripts/ddtrack-cli.py -k ${env.ddtrack_apikey} -x target/dependency-check-report.xml -p ${project} -u http://ddtrack-service")
+                  container('ddtrackcli') {
+                      sh('pip install requests')
+                      sh("bootstrap-infra/dependency-track/scripts/ddtrack-cli.py -k ${env.ddtrack_apikey} -x target/dependency-check-report.xml -p ${project} -u http://ddtrack-service")
+                  }
               }
+          } catch (org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e) {
+              println "Export to Dependency Track not activated : please set up the api key in ddtrack_apikey secret"
           }
       }
 
@@ -200,14 +206,20 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           }
       }
 
-      stage('Upload Reports to DefectDojo') {
-          container('defectdojocli'){
-              sh('pip install requests')
-              withCredentials([string(credentialsId: 'defectdojo_apikey', variable: 'defectdojo_apikey')]) {
-                  sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir ../../../reports/")
+      try {
+          withCredentials([string(credentialsId: 'defectdojo_apikey', variable: 'defectdojo_apikey')]) {
+              stage('Upload Reports to DefectDojo') {
+                  container('defectdojocli'){
+                      sh('pip install requests')
+                      sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir ../../../reports/")
+                  }
               }
           }
+
+      } catch (org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e) {
+          println "Export to Defect Dojo not activated : please set up the api key in defectdojo_apikey secret"
       }
+
 
       stage('Deploy to Kube') {
           container('kubectl') {
