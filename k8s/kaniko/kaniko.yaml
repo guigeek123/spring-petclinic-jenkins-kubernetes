@@ -22,4 +22,4 @@ spec:
         name: docker-config
     - name: docker-context
       persistentVolumeClaim:
-        claimName: docker-context
+        claimName: docker-context-kaniko
