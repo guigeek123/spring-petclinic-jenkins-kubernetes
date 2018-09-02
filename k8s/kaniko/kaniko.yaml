@@ -7,7 +7,7 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:216b14f79f4c8918b65a1df4e729618cbece77cc
     args: ["--dockerfile=Dockerfile",
-            "--context=dir:///tmp/context/context.tar.gz",
+            "--context=dir:///tmp/context/",
             "--destination=nexus-direct:8083/APPNAME:TAG",
             --insecure-skip-tls-verify] #to make kaniko able to use non ssl repository
     volumeMounts:
