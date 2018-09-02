@@ -6,21 +6,15 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:216b14f79f4c8918b65a1df4e729618cbece77cc
-    args: ["--dockerfile=/tmp/context/Dockerfile",
-            "--context=dir:///tmp/context/",
+    args: ["--dockerfile=Dockerfile",
+            "--context=gs://BUCKETNAME",
             "--destination=nexus-direct:8083/APPNAME:TAG",
             --insecure-skip-tls-verify] #to make kaniko able to use non ssl repository
     volumeMounts:
       - name: docker-config
         mountPath: /root/.docker/
-      - name: docker-context
-        mountPath: /tmp/context/
   restartPolicy: Never
   volumes:
     - name: docker-config
       configMap:
         name: docker-config
-    - name: docker-context
-      persistentVolumeClaim:
-        claimName: docker-context-kaniko
-        readOnly: true
