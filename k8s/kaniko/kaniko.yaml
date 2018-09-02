@@ -13,8 +13,13 @@ spec:
     volumeMounts:
       - name: docker-config
         mountPath: /root/.docker/
+      - name: docker-context
+        mountPath: /tmp/context/
   restartPolicy: Never
   volumes:
     - name: docker-config
       configMap:
         name: docker-config
+    - name: docker-context
+      persistentVolumeClaim:
+        claimName: docker-context
