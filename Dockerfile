@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:8-jre-alpine
 VOLUME /tmp
 ADD targetDocker/app.jar /app.jar
 ENV SPRING_PROFILES_ACTIVE docker
