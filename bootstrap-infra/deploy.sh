@@ -85,7 +85,6 @@ build_jenkins_server_with_helm() {
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
   printf "\nCreating persistent directory for local .m2 ...."
   kubectl apply -f jenkins/maven-with-cache-pvc.yaml
-  printf "\nCreating persistent directory for NVD database (dependency-check) ...."
 
 }  
 
@@ -99,7 +98,7 @@ build_nexus_server_with_helm() {
 }
 
 build_sonar_server_with_helm() {
-  printf "\nInstalling sonar ...."
+  printf "\nInstalling sonar with Helm ...."
   ./helm install -n sonar stable/sonarqube -f sonar/values.yaml --wait
 }
 
@@ -144,7 +143,7 @@ create_namespaces() {
 
 configure_nexus() {
   #Create access to nexus POD
-  #TODO : it assumes that nexus POD has had the time to start... make a proper script to check it
+  access-scripts/wait-for-deployment.sh nexus-sonatype-nexus
   access-scripts/access_nexus.sh
   while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081)" != "200" ]]; do sleep 5; done
   #TODO : manage nexus password.. (e.g. : script sh to generate a random password, push to nexus, push it to kubernetes secret for later use, and configure associated parts : maven and kaniko within POD Templates in Jenkinsfile)
@@ -154,16 +153,34 @@ configure_nexus() {
 
 }
 
+configure_sonar() {
+  access-scripts/wait-for-deployment.sh -t 300 sonar-sonarqube
+  access-scripts/access_sonar.sh
+  #Activate find sec bugs profile
+  while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9000)" != "200" ]]; do sleep 5; done
+  curl -v -u admin:admin -X POST "http://localhost:9000/api/qualityprofiles/set_default?language=java&profileName=FindBugs%20Security%20Audit"
+}
+
 access_main_apps() {
 
-  access-scripts/access_defectdojo.sh
-  access-scripts/access_jenkins.sh
+  # Nexus
+  sensible-browser "http://localhost:8081/"
 
   # Jenkins
+  access-scripts/wait-for-deployment.sh -t 300 cd-jenkins
+  access-scripts/access_jenkins.sh
   sensible-browser "http://localhost:8080/"
 
   # DefectDojo
+  access-scripts/wait-for-deployment.sh -t 300 defectdojo
+  access-scripts/access_defectdojo.sh
   sensible-browser "http://localhost:8000/"
+
+  # Dependency Track
+  access-scripts/wait-for-deployment.sh -t 300 ddtrack
+  access-scripts/access-ddtrack.sh
+  sensible-browser "http://localhost:8380/"
+
 }
 
 _main() {
@@ -213,12 +230,34 @@ _main() {
   # Creates Namespaces for later usage
   create_namespaces
 
+  # Setting findsecbugs profile as default
+  configure_sonar
+
+
+  printf "Configuration instructions and logins will be diplayed here...\n"
+  printf "Accessing main apps to be configured in 5s "
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+
+  # Launch browser when apps are ready
+  access_main_apps
+
   printf "\nCompleted provisioning development environment!!\n\n"
 
   printf "Default login / passwords :\n"
   printf " Jenkins :\n"
   printf "   - Login : admin\n"
-  printf "   - Password : will be displayed in this terminal in 5s\n"
+  printf "   - Password : "
+  printf $(kubectl get secret cd-jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
+  printf "\n"
   printf " DefectDojo :\n"
   printf "   - Login : admin\n"
   printf "   - Password : admin\n"
@@ -244,24 +283,9 @@ _main() {
   printf "1 - Get the API key from the 'automation' account to use it Jenkins credential, with ID name 'ddtrack_apikey' \n"
   printf "2 - Give the 'PORTFOLIO_MANAGEMENT' access right to the 'automation' account (ability to create projects)"
   printf "\n\n"
-  printf "DON'T FORGET 3 : SONAR Configuration !!!!\n"
-  printf "1 - WHEN SONAR IS STABLE (kubectl get pods), run ./configure-sonar.sh script\n"
+  printf "Please not that reports will not be sent to Defectdojo or Dependency Track if api keys are not configured in jenkins\n"
+  printf "ADVICE : wait half-an hour before setting Dependency Track API key (Dependency Track takes a long time to download CVEs, with some crashes during this period....)"
   printf "\n\n\n"
-
-
-  printf "Accessing main apps to be configured in 5s "
-  sleep 1
-  printf "."
-  sleep 1
-  printf "."
-  sleep 1
-  printf "."
-  sleep 1
-  printf "."
-  sleep 1
-  printf "."
-
-  access_main_apps
 
 }
 
