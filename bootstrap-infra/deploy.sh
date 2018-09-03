@@ -74,8 +74,8 @@ install_helm() {
   ./helm update
 
   #Display helm version 
-  printf "\nWaiting 15s before checking helm installation\n"
-  sleep 15
+  printf "\nWaiting 20s before checking helm installation\n"
+  sleep 20
   ./helm version
 }
 
@@ -165,6 +165,9 @@ access_main_apps() {
 
   # Nexus
   sensible-browser "http://localhost:8081/"
+
+  # Sonar
+  sensible-browser "http://localhost:9000/"
 
   # Jenkins
   access-scripts/wait-for-deployment.sh -t 300 cd-jenkins
