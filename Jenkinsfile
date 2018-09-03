@@ -48,7 +48,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           }
       }
 
-      stage('Build Docker Image') {
+      stage('Build with Maven') {
           container('maven') {
               //TODO : Manage secret using kubernetes secrets
               sh 'mvn -s maven-custom-settings clean deploy -DskipTests'
@@ -56,7 +56,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
       }
 
 
-      stage('Build image with Kaniko') {
+      stage('Build Docker image with Kaniko') {
 
           container('maven') {
               sh 'mkdir targetDocker'
@@ -211,7 +211,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               stage('Upload Reports to DefectDojo') {
                   container('defectdojocli'){
                       sh('pip install requests')
-                      sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product 1 --dir ../../../reports/")
+                      sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product ${project} --dir ../../../reports/")
                   }
               }
           }
