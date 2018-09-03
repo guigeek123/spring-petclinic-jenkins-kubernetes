@@ -84,7 +84,7 @@ build_jenkins_server_with_helm() {
   printf "\nInstalling jenkins with Helm ...."
   ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 0.16.6 --wait
   printf "\nCreating persistent directory for local .m2 ...."
-  kubectl apply -f jenkins/maven-with-cache-pvc.yaml
+  kubectl apply -f jenkins/k8s/maven-with-cache-pvc.yaml
 
 }  
 
@@ -92,9 +92,9 @@ build_nexus_server_with_helm() {
   printf "\nInstalling nexus with Helm...."
   ./helm install -n nexus stable/sonatype-nexus -f nexus/values.yaml --wait
   #TO BE PATCHED : Creates a service that allows direct access to nexus (no proxy, cause proxy respond "internal error" for now). This service is used in the maven-custom-settings passed to maven during the build.
-  kubectl apply -f nexus/nexus-direct-service.yaml
+  kubectl apply -f nexus/k8s/nexus-direct-service.yaml
   #Create a service nodeport to make docker registry available for image deployment in kubernetes (see configuration in deployment yaml)
-  kubectl apply -f nexus/nexus-direct-nodeport.yaml
+  kubectl apply -f nexus/k8s/nexus-direct-nodeport.yaml
 }
 
 build_sonar_server_with_helm() {
@@ -105,8 +105,8 @@ build_sonar_server_with_helm() {
 
 build_zap_server() {
     printf "\nInstalling ZAP ..."
-    kubectl apply -f zap/deployment-zap.yaml
-    kubectl apply -f zap/service-zap.yaml
+    kubectl apply -f zap/k8s/deployment-zap.yaml
+    kubectl apply -f zap/k8s/service-zap.yaml
 }
 
 build_clair_server_with_helm() {
@@ -128,10 +128,10 @@ build_defectdojo_server() {
 
 build_ddtrack_server() {
     printf "\nCreating persistent disk for Dependency Track config..."
-    kubectl apply -f dependency-track/ddtrack-cache-pvc.yaml
+    kubectl apply -f dependency-track/k8s/ddtrack-cache-pvc.yaml
     printf "\nInstalling Dependency Track ..."
-    kubectl apply -f dependency-track/deployment-ddtrack.yaml
-    kubectl apply -f dependency-track/service-ddtrack.yaml
+    kubectl apply -f dependency-track/k8s/deployment-ddtrack.yaml
+    kubectl apply -f dependency-track/k8s/service-ddtrack.yaml
 }
 
 create_namespaces() {
@@ -143,8 +143,8 @@ create_namespaces() {
 
 configure_nexus() {
   #Create access to nexus POD
-  access-scripts/wait-for-deployment.sh nexus-sonatype-nexus
-  access-scripts/access_nexus.sh
+  scripts/wait-for-deployment.sh nexus-sonatype-nexus
+  scripts/nexus_access.sh
   while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081)" != "200" ]]; do sleep 5; done
   #TODO : manage nexus password.. (e.g. : script sh to generate a random password, push to nexus, push it to kubernetes secret for later use, and configure associated parts : maven and kaniko within POD Templates in Jenkinsfile)
   curl -u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/createDockerRepo.json
@@ -154,10 +154,12 @@ configure_nexus() {
 }
 
 configure_sonar() {
-  access-scripts/wait-for-deployment.sh -t 300 sonar-sonarqube
-  access-scripts/access_sonar.sh
+  scripts/wait-for-deployment.sh -t 300 sonar-sonarqube
+  scripts/sonar_access.sh
   #Activate find sec bugs profile
   while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9000)" != "200" ]]; do sleep 5; done
+  #Wait a bit (sometimes sonar is not ready)
+  sleep 10
   curl -v -u admin:admin -X POST "http://localhost:9000/api/qualityprofiles/set_default?language=java&profileName=FindBugs%20Security%20Audit"
 }
 
@@ -170,18 +172,18 @@ access_main_apps() {
   sensible-browser "http://localhost:9000/"
 
   # Jenkins
-  access-scripts/wait-for-deployment.sh -t 300 cd-jenkins
-  access-scripts/access_jenkins.sh
+  scripts/wait-for-deployment.sh -t 300 cd-jenkins
+  scripts/jenkins_access.sh
   sensible-browser "http://localhost:8080/"
 
   # DefectDojo
-  access-scripts/wait-for-deployment.sh -t 300 defectdojo
-  access-scripts/access_defectdojo.sh
+  scripts/wait-for-deployment.sh -t 300 defectdojo
+  scripts/defectdojo_access.sh
   sensible-browser "http://localhost:8000/"
 
   # Dependency Track
-  access-scripts/wait-for-deployment.sh -t 300 ddtrack
-  access-scripts/access-ddtrack.sh
+  scripts/wait-for-deployment.sh -t 300 ddtrack
+  scripts/ddtrack_access.sh
   sensible-browser "http://localhost:8380/"
 
 }
