@@ -68,9 +68,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
           container(name: 'kaniko', shell: '/busybox/sh'){
               withEnv(['PATH+EXTRA=/busybox']) {
-                  sh("executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure-skip-tls-verify")
+                  sh("/kaniko/executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure-skip-tls-verify")
               }
-
           }
 
       }
