@@ -7,12 +7,12 @@ def tempBucket = "${project}-${appName}-${env.BUILD_NUMBER}"
 podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'kaniko', image: 'guigeek123/custom_kaniko', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'ddtrackcli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
+  //containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
+  //containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
+  //containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
+  //containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'kaniko', image: 'guigeek123/custom_kaniko', ttyEnabled: true, command: 'cat')
+  //containerTemplate(name: 'ddtrackcli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
         emptyDirVolume(mountPath: '/tmp/context/', memory: false)
@@ -49,14 +49,14 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               println "Export to Dependency Track not activated : please set up the api key in ddtrack_apikey secret"
           }
       }
-       */
+
 
       stage('Build with Maven') {
           container('maven') {
               //TODO : Manage secret using kubernetes secrets
               sh 'mvn -s maven-custom-settings clean deploy -DskipTests'
           }
-      }
+      } */
 
 
       stage('Build Docker image with Kaniko') {
