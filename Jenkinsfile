@@ -66,16 +66,8 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh 'cd targetDocker && mvn -s ../maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'
           }
 
-          container('kaniko'){
-
-              withEnv(['PATH+EXTRA=/busybox']) {
-                  sh '''#!/busybox/sh
-          /kaniko/executor --dockerfile=Dockerfile --context=. --destination=nexus-direct:8083/blabla:1 --insecure-skip-tls-verify}
-          '''
-              }
-
-
-              //sh("executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure-skip-tls-verify")
+          container(name: 'kaniko', shell: '/busybox/sh'){
+              sh("executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure-skip-tls-verify")
           }
 
       }
