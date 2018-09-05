@@ -11,6 +11,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat'),
+  containerTemplate(name: 'kaniko', image: 'guigeek123/custom_kaniko', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'ddtrackcli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
@@ -24,6 +25,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           //git branch: 'mergeAll', url: 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
       }
 
+      /**
       stage('Sonar and Dependency-Check') {
           container('maven') {
               //TODO : Manage secret using kubernetes secrets
@@ -47,6 +49,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               println "Export to Dependency Track not activated : please set up the api key in ddtrack_apikey secret"
           }
       }
+       */
 
       stage('Build with Maven') {
           container('maven') {
@@ -63,35 +66,12 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               sh 'cd targetDocker && mvn -s ../maven-custom-settings-download org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'
           }
 
-          container('gcloud'){
-              //Creates a bucket to give context to kaniko for docker image building
-              //TODO : remove usage of buckets to erase dependency with google cloud
-              sh "gsutil mb -c nearline gs://${tempBucket}"
-              sh 'tar -C . -zcvf /tmp/context/context.tar.gz .'
-              sh "gsutil cp /tmp/context/context.tar.gz gs://${tempBucket}"
-          }
-
-          container('kubectl'){
-              //Personalize kaniko execution config
-              sh("sed -i.bak 's#BUCKETNAME#${tempBucket}/context.tar.gz#' ./k8s/kaniko/kaniko.yaml")
-              sh("sed -i.bak 's#APPNAME#${appName}#' ./k8s/kaniko/kaniko.yaml")
-              sh("sed -i.bak 's#TAG#${env.BUILD_NUMBER}#' ./k8s/kaniko/kaniko.yaml")
-              sh "kubectl apply -f k8s/kaniko/kaniko.yaml"
-              //Wait for kaniko image to start before viewing logs
-              //Displaying logs also allows to wait for building image task to finish before going to next steps
-              sh 'sleep 15'
-              sh("kubectl logs -f kaniko-${appName}")
-              //Require to delete the pod cause it remains with status completed instead
-              sh("kubectl delete pod kaniko-${appName}")
-          }
-
-          container('gcloud'){
-              //Delete the bucket : not required anymore
-              sh "gsutil rm -r gs://${tempBucket}"
+          container('kaniko'){
+              sh("executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER}")
           }
 
       }
-
+/**
       stage('Scan image with CLAIR') {
           // Execute scan and analyse results
           try {
@@ -120,31 +100,6 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
 
       stage('DAST with ZAP') {
-          /**
-           * This step deploys the application into a namespace dedicated to test ("testing")
-           * The ZAP is running inside the default namespace, so we deploy also what is called here an "internamespace" service, which make available the target app from the default namespace
-           * The ZAP server has been deployed during the "environment deployment"
-           * The 'zapcli' container is a python based container which runs scripts to launch DAST from ZAP server, dumps results, push it to Jenkins, and analyses it using Behave and the policy implemented in boostrap-infra/zap/scripts/features/
-           * Then the app and internamespace service are destroyed
-           * NOTE : this step remains "non blocking" for now (using the try catch below)
-           *
-           * TODO :
-           *   MANDATORY :
-           *   - Wait for service & deployment to be upp before starting zap testing
-           *
-           *   OPTIMIZATION / BACK LOG
-           *   - Make this stage not required for all push (e.g. : only for push on a specific branch ...)
-           *
-           *   - Add a call to "New Session" ZAP function
-           *   - Add more policy rules using behave scenario
-           *   - Add functions to create / load a zap session (simpler way : create new unique session at each build ; better way : learn to use zap iteratively in the same zap session...)
-           *   - Add functions for detailed zap configuration : push and load zap context files...
-           *
-           *   OR (better !)
-           *
-           *   - Migrate to BDD Security
-           *
-           * */
 
           container('kubectl') {
               // Create dedicated deployment yaml for testing in order not to be confused later with deployment in production
@@ -238,7 +193,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //sh("echo http://`kubectl --namespace=production get service/${feSvcName} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${feSvcName}")
           }
       }
-
+*/
   }  
 
 }
