@@ -6,7 +6,7 @@ def tempBucket = "${project}-${appName}-${env.BUILD_NUMBER}"
 
 podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
+  //containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
   containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
