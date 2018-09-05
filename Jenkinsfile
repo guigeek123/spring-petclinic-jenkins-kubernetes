@@ -11,7 +11,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
   //containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
   //containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'kaniko', image: 'guigeek123/custom_kaniko:1', ttyEnabled: true, command: 'cat')
+  containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:debug', ttyEnabled: true, command: '/busybox/cat')
   //containerTemplate(name: 'ddtrackcli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
   ], volumes: [
         persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
