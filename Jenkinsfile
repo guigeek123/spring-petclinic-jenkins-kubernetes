@@ -4,20 +4,81 @@ def  feSvcName = "${appName}-frontend"
 def  imageTag = "${appName}:${env.BUILD_NUMBER}"
 def tempBucket = "${project}-${appName}-${env.BUILD_NUMBER}"
 
-podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
-  containerTemplate(name: 'maven', image: 'maven:alpine', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'gcloud', image: 'gcr.io/cloud-builders/gcloud', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'kubectl', image: 'gcr.io/cloud-builders/kubectl', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'zapcli', image: 'python:3.7-stretch', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'claircli', image: 'python:2.7-alpine', ttyEnabled: true, command: 'cat'),
-  //containerTemplate(name: 'defectdojocli', image: 'python:2.7', ttyEnabled: true, command: 'cat'),
-  containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:debug', ttyEnabled: true, command: '/busybox/cat')
-  //containerTemplate(name: 'ddtrackcli', image: 'python:2.7', ttyEnabled: true, command: 'cat')
-  ], volumes: [
-        persistentVolumeClaim(mountPath: '/root/.m2/repository', claimName: 'maven-repo', readOnly: false),
-        emptyDirVolume(mountPath: '/tmp/context/', memory: false)
-        //emptyDirVolume(mountPath: '/root/.m2/repository', memory: false)
-  ]) {
+podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', yaml: """
+kind: Pod
+metadata:
+  name: slave
+spec:
+  containers:
+  - name: maven
+    image: maven:alpine
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+      - name: maven-repo
+        mountPath: /root/.m2/repository
+        
+  - name: kubectl
+    image: gcr.io/cloud-builders/kubectl
+    imagePullPolicy: IfNotPresent
+    command:  
+    - cat
+    tty: true
+    
+  - name: zapcli
+    image: python:3.7-stretch
+    imagePullPolicy: IfNotPresent
+    command:  
+    - cat
+    tty: true
+
+  - name: claircli
+    image: python:2.7-alpine
+    imagePullPolicy: IfNotPresent
+    command:  
+    - cat
+    tty: true
+    
+  - name: defectdojocli
+    image: python:2.7
+    imagePullPolicy: IfNotPresent
+    command:  
+    - cat
+    tty: true
+    
+  - name: ddtrackcli
+    image: python:2.7
+    imagePullPolicy: IfNotPresent
+    command:  
+    - cat
+    tty: true    
+    
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug-7a7d5449168da6fb0e45a8cfc625ed7a7e7bd9f3
+    imagePullPolicy: IfNotPresent
+    command:
+    - /busybox/cat
+    tty: true
+    volumeMounts:
+      - name: jenkins-docker-cfg
+        mountPath: /root
+        
+  volumes:
+  - name: jenkins-docker-cfg
+    projected:
+      sources:
+      - secret:
+          name: regcred
+          items:
+            - key: .dockerconfigjson
+              path: .docker/config.json
+  - name: maven-repo
+    persistentVolumeClaim:
+      claimName: maven-repo
+"""
+) {
 
   node('mypod') {
       stage('Checkout') {
@@ -25,7 +86,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
           //git branch: 'mergeAll', url: 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
       }
 
-      /**
+
       stage('Sonar and Dependency-Check') {
           container('maven') {
               //TODO : Manage secret using kubernetes secrets
@@ -56,7 +117,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //TODO : Manage secret using kubernetes secrets
               sh 'mvn -s maven-custom-settings clean deploy -DskipTests'
           }
-      } */
+      }
 
 
       stage('Build Docker image with Kaniko') {
@@ -68,12 +129,18 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
 
           container(name: 'kaniko', shell: '/busybox/sh'){
               withEnv(['PATH+EXTRA=/busybox']) {
-                  sh("/kaniko/executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure-skip-tls-verify")
+                  sh """#!/busybox/sh
+                        /busybox/ls -l /root/.docker/
+                        /busybox/cat /root/.docker/config.json
+                        /kaniko/executor --dockerfile=Dockerfile -c `pwd` --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure
+                    """
+
+                  //sh("/kaniko/executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure-skip-tls-verify")
               }
           }
 
       }
-/**
+
       stage('Scan image with CLAIR') {
           // Execute scan and analyse results
           try {
@@ -195,7 +262,7 @@ podTemplate(serviceAccount:'cd-jenkins', label: 'mypod', containers: [
               //sh("echo http://`kubectl --namespace=production get service/${feSvcName} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${feSvcName}")
           }
       }
-*/
+
   }  
 
 }

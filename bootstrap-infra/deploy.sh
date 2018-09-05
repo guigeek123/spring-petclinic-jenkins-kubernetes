@@ -116,8 +116,9 @@ build_clair_server_with_helm() {
   ./helm install -n clair clair -f clair/values.yaml
   #cd $BASE_DIR
   printf "\nCreating configmap for kaniko to push Docker image on Nexus...."
-  printf "\nWARNING SECU : Nexus password encoded in Base64 only..."
-  kubectl create configmap docker-config --from-file=kaniko/config.json
+  printf "\nWARNING SECU : Nexus password in clear in the command above"
+  #kubectl create configmap docker-config --from-file=kaniko/config.json
+  kubectl create secret docker-registry regcred --docker-server=http://nexus-direct:8083/ --docker-username=admin --docker-password=admin123 --docker-email=admin@admin.com
 }
 
 build_defectdojo_server() {
