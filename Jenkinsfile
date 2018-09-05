@@ -130,12 +130,8 @@ spec:
           container(name: 'kaniko', shell: '/busybox/sh'){
               withEnv(['PATH+EXTRA=/busybox']) {
                   sh """#!/busybox/sh
-                        /busybox/ls -l /root/.docker/
-                        /busybox/cat /root/.docker/config.json
                         /kaniko/executor --dockerfile=Dockerfile -c `pwd` --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure
                     """
-
-                  //sh("/kaniko/executor --dockerfile=Dockerfile --context=dir://. --destination=nexus-direct:8083/${appName}:${env.BUILD_NUMBER} --insecure-skip-tls-verify")
               }
           }
 
