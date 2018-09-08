@@ -149,7 +149,7 @@ configure_nexus() {
   curl -X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/docker/run'
   curl -u admin:admin123 -X DELETE http://localhost:8081/service/rest/v1/script/docker
 
-  #Generate random admin password for Nexus and save it into a secret
+  #Generate random admin password for Nexus and save it into a kubernetes secret
   printf "\nCreating random admin password for Nexus...."
   echo -n 'admin' > ./username
   date +%s | sha256sum | head -c 10 > ./password
@@ -292,26 +292,7 @@ _main() {
 
   printf "\nCompleted provisioning development environment!!\n\n"
 
-  printf "Default login / passwords :\n"
-  printf " Jenkins :\n"
-  printf "   - Login : admin\n"
-  printf "   - Password : "
-  printf $(kubectl get secret cd-jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
-  printf "\n"
-  printf " DefectDojo :\n"
-  printf "   - Login : admin\n"
-  printf "   - Password : admin\n"
-  printf " Nexus :\n"
-  printf "   - Login : admin\n"
-  printf "   - Password : "
-  printf $(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode);echo
-  printf "\n"
-  printf " Sonar :\n"
-  printf "   - Login : admin\n"
-  printf "   - Password : admin\n"
-  printf " Dependency Track :\n"
-  printf "   - Login : admin\n"
-  printf "   - Password : admin\n\n"
+  sh ./show-passwords.sh
 
   printf "\n\n WARNING  : PLEASE READ WITH ATTENTION"
   printf "\n\n"
