@@ -115,10 +115,6 @@ build_clair_server_with_helm() {
   ./helm dependency update clair
   ./helm install -n clair clair -f clair/values.yaml
   #cd $BASE_DIR
-  printf "\nCreating configmap for kaniko to push Docker image on Nexus...."
-  printf "\nWARNING SECU : Nexus password in clear in the command above"
-  #kubectl create configmap docker-config --from-file=kaniko/config.json
-  kubectl create secret docker-registry regcred --docker-server=http://nexus-direct:8083/ --docker-username=admin --docker-password=admin123 --docker-email=admin@admin.com
 }
 
 build_defectdojo_server() {
@@ -153,22 +149,28 @@ configure_nexus() {
   curl -X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/docker/run'
   curl -u admin:admin123 -X DELETE http://localhost:8081/service/rest/v1/script/docker
 
-  #Generate and configure admin passwords
+  #Generate random admin password for Nexus and save it into a secret
+  printf "\nCreating random admin password for Nexus...."
   echo -n 'admin' > ./username
   date +%s | sha256sum | head -c 10 > ./password
+  printf "\nSaving password into a Kubernetes secret ...."
   kubectl create secret generic nexus-admin-pass --from-file=./username --from-file=./password
-  sed -i.bak "s#PASSWORD#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#" nexus/configScripts/changeAdminPassword.json
 
+  #Update Nexus admin password
+  sed -i.bak "s#PASSWORD#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#" nexus/configScripts/changeAdminPassword.json
   curl -u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/changeAdminPassword.json
   curl -X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/changepass/run'
   curl -u admin:$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode) -X DELETE http://localhost:8081/service/rest/v1/script/changepass
+
+  printf "\nCreating a specific secret for kaniko to push Docker image on Nexus...."
+  #kubectl create configmap docker-config --from-file=kaniko/config.json
+  kubectl create secret docker-registry regcred --docker-server=http://nexus-direct:8083/ --docker-username=admin --docker-password=$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode) --docker-email=admin@admin.com
 
   #Cleaning files
   rm username
   rm password
   rm nexus/configScripts/changeAdminPassword.json
   mv nexus/configScripts/changeAdminPassword.json.bak nexus/configScripts/changeAdminPassword.json
-
 
 }
 
