@@ -89,7 +89,10 @@ spec:
 
       stage('Sonar and Dependency-Check') {
           container('maven') {
-              //TODO : Manage secret using kubernetes secrets
+              //Manage Nexus secret
+              sh 'sed \"s#NEXUSLOGIN#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.username}" | base64 --decode)#\" maven-custom-settings'
+              sh 'sed \"s#NEXUSPASS#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#\" maven-custom-settings'
+
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
               sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
               sh 'mkdir reports && mkdir reports/dependency && cp target/dependency-check-report.xml reports/dependency/'

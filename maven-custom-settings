@@ -10,8 +10,8 @@
   <servers>
     <server>
       <id>internal-snapshots-repository</id>
-      <username>admin</username>
-      <password>admin123</password>
+      <username>NEXUSLOGIN</username>
+      <password>NEXUSPASS</password>
     </server>
   </servers>
   <pluginGroups>

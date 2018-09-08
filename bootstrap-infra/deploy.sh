@@ -147,10 +147,28 @@ configure_nexus() {
   scripts/wait-for-deployment.sh nexus-sonatype-nexus
   scripts/nexus_access.sh
   while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081)" != "200" ]]; do sleep 5; done
-  #TODO : manage nexus password.. (e.g. : script sh to generate a random password, push to nexus, push it to kubernetes secret for later use, and configure associated parts : maven and kaniko within POD Templates in Jenkinsfile)
+
+  # Creating docker repositories
   curl -u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/createDockerRepo.json
   curl -X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/docker/run'
-  #curl -u admin:admin123 -X DELETE http://localhost:8081/service/rest/v1/script/docker
+  curl -u admin:admin123 -X DELETE http://localhost:8081/service/rest/v1/script/docker
+
+  #Generate and configure admin passwords
+  echo -n 'admin' > ./username
+  date +%s | sha256sum | head -c 10 > ./password
+  kubectl create secret generic nexus-admin-pass --from-file=./username --from-file=./password
+  sed -i.bak "s#PASSWORD#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#" nexus/configScripts/changeAdminPassword.json
+
+  curl -u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/changeAdminPassword.json
+  curl -X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/changepass/run'
+  curl -u admin:$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode) -X DELETE http://localhost:8081/service/rest/v1/script/changepass
+
+  #Cleaning files
+  rm username
+  rm password
+  rm nexus/configScripts/changeAdminPassword.json
+  mv nexus/configScripts/changeAdminPassword.json.bak nexus/configScripts/changeAdminPassword.json
+
 
 }
 
@@ -158,7 +176,7 @@ configure_sonar() {
   scripts/wait-for-deployment.sh -t 300 sonar-sonarqube
   scripts/sonar_access.sh
   #Activate find sec bugs profile
-  while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9000/api/webservices/list)" != "200" ]]; do sleep 5; done
+  while [[ "$(curl -u admin:admin -s -o /dev/null -w ''%{http_code}'' localhost:9000/api/webservices/list)" != "200" ]]; do sleep 5; done
   #Wait a bit (sometimes sonar is not ready)
   sleep 10
   curl -v -u admin:admin -X POST "http://localhost:9000/api/qualityprofiles/set_default?language=java&profileName=FindBugs%20Security%20Audit"
@@ -283,7 +301,9 @@ _main() {
   printf "   - Password : admin\n"
   printf " Nexus :\n"
   printf "   - Login : admin\n"
-  printf "   - Password : admin123\n"
+  printf "   - Password : "
+  printf $(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode);echo
+  printf "\n"
   printf " Sonar :\n"
   printf "   - Login : admin\n"
   printf "   - Password : admin\n"
