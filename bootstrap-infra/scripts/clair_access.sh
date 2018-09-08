@@ -1,6 +1,6 @@
 #!/bin/bash
 
-printf "\n Setting up port forwarding for Clair..."
+printf "\n Setting up port forwarding for Clair...\n"
 
 export POD_NAME=$(kubectl get pods -l "app=clair" -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward $POD_NAME 6060:6060 >> /dev/null &

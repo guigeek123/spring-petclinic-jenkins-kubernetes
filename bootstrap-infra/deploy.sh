@@ -142,9 +142,11 @@ configure_nexus() {
   #Create access to nexus POD
   scripts/wait-for-deployment.sh nexus-sonatype-nexus
   scripts/nexus_access.sh
+  printf "\nAbout to configure Jenkins ...\n"
   while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081)" != "200" ]]; do sleep 5; done
 
   # Creating docker repositories
+  printf "\nCreating docker repositories ...\n"
   curl -u admin:admin123 -X POST --header 'Content-Type: application/json'  http://localhost:8081/service/rest/v1/script  -d @nexus/configScripts/createDockerRepo.json
   curl -X POST -u admin:admin123 --header "Content-Type: text/plain" 'http://localhost:8081/service/rest/v1/script/docker/run'
   curl -u admin:admin123 -X DELETE http://localhost:8081/service/rest/v1/script/docker
@@ -177,10 +179,11 @@ configure_nexus() {
 configure_sonar() {
   scripts/wait-for-deployment.sh -t 300 sonar-sonarqube
   scripts/sonar_access.sh
+  printf "\nAbout to configure Sonar ...\n"
   #Activate find sec bugs profile
   while [[ "$(curl -u admin:admin -s -o /dev/null -w ''%{http_code}'' localhost:9000/api/webservices/list)" != "200" ]]; do sleep 5; done
   #Wait a bit (sometimes sonar is not ready)
-  sleep 10
+  sleep 20
   curl -v -u admin:admin -X POST "http://localhost:9000/api/qualityprofiles/set_default?language=java&profileName=FindBugs%20Security%20Audit"
 }
 
