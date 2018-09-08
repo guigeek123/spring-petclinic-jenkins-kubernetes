@@ -29,7 +29,19 @@
           http://sonar-sonarqube:9000
         </sonar.host.url>
       </properties>
+
       <repositories>
+        <repository>
+          <id>maven-public</id>
+          <url>http://nexus-direct:8081/repository/maven-public</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
         <repository>
           <id>maven-releases</id>
           <url>http://nexus-direct:8081/repository/maven-releases</url>
@@ -53,6 +65,7 @@
           </snapshots>
         </repository>
       </repositories>
+
      </profile>
    </profiles>
 </settings>
