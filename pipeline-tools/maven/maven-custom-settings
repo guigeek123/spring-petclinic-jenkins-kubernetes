@@ -1,0 +1,71 @@
+<settings>
+  <mirrors>
+    <mirror>
+      <id>internal-repository</id>
+      <name>Nexus repository direct</name>
+      <url>http://nexus-direct:8081/repository/maven-public</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+  <servers>
+    <server>
+      <id>internal-snapshots-repository</id>
+      <username>NEXUSLOGIN</username>
+      <password>NEXUSPASS</password>
+    </server>
+  </servers>
+  <pluginGroups>
+    <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+  </pluginGroups>
+  <profiles>
+    <profile>
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <!-- Optional URL to server. Default value is http://localhost:9000 -->
+        <sonar.host.url>
+          http://sonar-sonarqube:9000
+        </sonar.host.url>
+      </properties>
+
+      <repositories>
+        <repository>
+          <id>maven-public</id>
+          <url>http://nexus-direct:8081/repository/maven-public</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>maven-releases</id>
+          <url>http://nexus-direct:8081/repository/maven-releases</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>maven-snapshots</id>
+          <url>http://nexus-direct:8081/repository/maven-snapshots</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+
+     </profile>
+   </profiles>
+</settings>

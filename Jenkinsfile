@@ -91,14 +91,14 @@ spec:
 
           container('kubectl') {
               //Manage Nexus secret
-              sh 'sed -i.bak \"s#NEXUSLOGIN#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.username}" | base64 --decode)#\" maven-custom-settings'
-              sh 'sed -i.bak \"s#NEXUSPASS#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#\" maven-custom-settings'
+              sh 'sed -i.bak \"s#NEXUSLOGIN#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.username}" | base64 --decode)#\" pipeline-tools/maven/maven-custom-settings'
+              sh 'sed -i.bak \"s#NEXUSPASS#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#\" pipeline-tools/maven/maven-custom-settings'
           }
 
           container('maven') {
 
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
-              sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
+              sh 'mvn -s pipeline-tools/maven/maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
               sh 'mkdir reports && mkdir reports/dependency && cp target/dependency-check-report.xml reports/dependency/'
               // WARNING SECURITY : Change permission to make other container able to move reports in that directory (to be patched)
               sh 'chmod 777 reports'
@@ -110,7 +110,7 @@ spec:
               withCredentials([string(credentialsId: 'ddtrack_apikey', variable: 'ddtrack_apikey')]) {
                   container('ddtrackcli') {
                       sh('pip install requests')
-                      sh("bootstrap-infra/dependency-track/scripts/ddtrack-cli.py -k ${env.ddtrack_apikey} -x target/dependency-check-report.xml -p ${project} -u http://ddtrack-service")
+                      sh("pipeline-tools/dependency-track/scripts/ddtrack-cli.py -k ${env.ddtrack_apikey} -x target/dependency-check-report.xml -p ${project} -u http://ddtrack-service")
                   }
               }
           } catch (org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e) {
@@ -121,7 +121,7 @@ spec:
 
       stage('Build with Maven') {
           container('maven') {
-              sh 'mvn -s maven-custom-settings clean deploy -DskipTests'
+              sh 'mvn -s pipeline-tools/maven/maven-custom-settings clean deploy -DskipTests'
           }
       }
 
@@ -130,7 +130,7 @@ spec:
 
           container('maven') {
               sh 'mkdir targetDocker'
-              sh 'cd targetDocker && mvn -s ../maven-custom-settings org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'
+              sh 'cd targetDocker && mvn -s ../pipeline-tools/maven/maven-custom-settings org.apache.maven.plugins:maven-dependency-plugin::get -DgroupId=org.springframework.samples -DartifactId=spring-petclinic -Dversion=2.0.0.BUILD-SNAPSHOT -Dpackaging=jar -Ddest=app.jar'
           }
 
           container(name: 'kaniko', shell: '/busybox/sh'){
@@ -149,11 +149,11 @@ spec:
               container('claircli') {
                   // Prerequisites installation on python image
                   // Could be optimized by providing a custom docker image, built and pushed to github before...
-                  sh 'pip install --no-cache-dir -r bootstrap-infra/clair/scripts/requirements.txt'
+                  sh 'pip install --no-cache-dir -r pipeline-tools/clair/scripts/requirements.txt'
 
                   // Executing customized Yair script
                   // --no-namespace cause docker image is not pushed withi a "Library" folder in Nexus
-                  sh "cd bootstrap-infra/clair/scripts/ && chmod +x yair-custom.py && ./yair-custom.py ${appName}:${env.BUILD_NUMBER} --no-namespace"
+                  sh "cd pipeline-tools/clair/scripts/ && chmod +x yair-custom.py && ./yair-custom.py ${appName}:${env.BUILD_NUMBER} --no-namespace"
 
 
               }
@@ -161,7 +161,7 @@ spec:
               // TODO : Show an information on jenkins to say that the gate is not OK but not block the build
           } finally {
               // Move JSON report to be uploaded later in defectdojo
-              sh "mkdir reports/clair && mv bootstrap-infra/clair/scripts/clair-results.json reports/clair/"
+              sh "mkdir reports/clair && mv pipeline-tools/clair/scripts/clair-results.json reports/clair/"
           }
 
       }
@@ -205,16 +205,16 @@ spec:
                   sh "curl http://${appName}-frontend-defaultns/"
 
                   // Executing zap client python scripts
-                  sh "cd bootstrap-infra/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://${appName}-frontend-defaultns/"
+                  sh "cd pipeline-tools/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://${appName}-frontend-defaultns/"
 
                   // Publish ZAP Html Report into Jenkins (jenkins plugin required)
-                  publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
+                  publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'pipeline-tools/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
                   // Move XML report to be uploaded later in defectdojo
-                  sh "mkdir reports/zap && mv bootstrap-infra/zap/scripts/zap-results.xml reports/zap/"
+                  sh "mkdir reports/zap && mv pipeline-tools/zap/scripts/zap-results.xml reports/zap/"
 
                   // Analysing results using behave
-                  sh 'cd bootstrap-infra/zap/scripts/ && behave'
+                  sh 'cd pipeline-tools/zap/scripts/ && behave'
               }
           } catch (all) {
               // We get in this catch at least if the policy is not respected (behave launches an error)
@@ -234,7 +234,7 @@ spec:
               stage('Upload Reports to DefectDojo') {
                   container('defectdojocli'){
                       sh('pip install requests')
-                      sh("cd bootstrap-infra/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product ${project} --dir ../../../reports/")
+                      sh("cd pipeline-tools/defectdojo/scripts/ && chmod +x dojo_ci_cd.py && ./dojo_ci_cd.py --host http://defectdojo:80 --api_key ${env.defectdojo_apikey} --build_id ${env.BUILD_NUMBER} --user admin --product ${project} --dir ../../../reports/")
                   }
               }
           }
