@@ -13,7 +13,7 @@ if [ "$#" -ne 1 ] ; then
 fi
 readonly token="$1"
 
-app1=( "Kubepetclinic" "https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git" "cleaning" )
+app1=( "Kubepetclinic" "https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git" "split" )
 app2=( "bla2" "https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git" "cleaning" )
 
 scripts/createJob.sh -k $token -b ${app1[2]} -g ${app1[1]} ${app1[0]}
