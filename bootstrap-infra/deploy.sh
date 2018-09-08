@@ -158,11 +158,18 @@ configure_sonar() {
   scripts/wait-for-deployment.sh -t 300 sonar-sonarqube
   scripts/sonar_access.sh
   #Activate find sec bugs profile
-  while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9000)" != "200" ]]; do sleep 5; done
+  while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9000/api/webservices/list)" != "200" ]]; do sleep 5; done
   #Wait a bit (sometimes sonar is not ready)
   sleep 10
   curl -v -u admin:admin -X POST "http://localhost:9000/api/qualityprofiles/set_default?language=java&profileName=FindBugs%20Security%20Audit"
 }
+
+build_weave() {
+  # Tool to vizualize cluster
+  printf "\nInstalling Weave ..."
+  kubectl create -f 'https://cloud.weave.works/launch/k8s/weavescope.yaml'
+}
+
 
 access_main_apps() {
 
@@ -186,6 +193,11 @@ access_main_apps() {
   scripts/wait-for-deployment.sh -t 300 ddtrack
   scripts/ddtrack_access.sh
   sensible-browser "http://localhost:8380/"
+
+  # Weave
+  scripts/wait-for-deployment.sh -n weave -t 300 weave-scope-app
+  scripts/weave_access.sh
+  sensible-browser "http://localhost:4040/"
 
 }
 
@@ -238,6 +250,8 @@ _main() {
 
   # Setting findsecbugs profile as default
   configure_sonar
+
+  build_weave
 
 
   printf "Configuration instructions and logins will be diplayed here...\n"
