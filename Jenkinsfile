@@ -88,10 +88,14 @@ spec:
 
 
       stage('Sonar and Dependency-Check') {
-          container('maven') {
+
+          container('kubectl') {
               //Manage Nexus secret
-              sh 'sed \"s#NEXUSLOGIN#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.username}" | base64 --decode)#\" maven-custom-settings'
-              sh 'sed \"s#NEXUSPASS#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#\" maven-custom-settings'
+              sh 'sed -i.bak \"s#NEXUSLOGIN#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.username}" | base64 --decode)#\" maven-custom-settings'
+              sh 'sed -i.bak \"s#NEXUSPASS#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#\" maven-custom-settings'
+          }
+
+          container('maven') {
 
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
               sh 'mvn -s maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
@@ -117,7 +121,6 @@ spec:
 
       stage('Build with Maven') {
           container('maven') {
-              //TODO : Manage secret using kubernetes secrets
               sh 'mvn -s maven-custom-settings clean deploy -DskipTests'
           }
       }
@@ -152,9 +155,6 @@ spec:
                   // --no-namespace cause docker image is not pushed withi a "Library" folder in Nexus
                   sh "cd bootstrap-infra/clair/scripts/ && chmod +x yair-custom.py && ./yair-custom.py ${appName}:${env.BUILD_NUMBER} --no-namespace"
 
-                  // TODO : change yair script to generate an html report
-                  // Publish Clair Html Report into Jenkins (jenkins plugin required)
-                  // publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'bootstrap-infra/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
 
               }
           } catch (all) {
@@ -194,7 +194,7 @@ spec:
           try {
               container('zapcli') {
                   // Prerequisites installation on python image
-                  //   Could be optimized by providing a custom docker image, built and pushed to github before...
+                  // Could be optimized by providing a custom docker image, built and pushed to github before...
                   sh 'pip install python-owasp-zap-v2.4'
                   sh 'pip install behave'
 
