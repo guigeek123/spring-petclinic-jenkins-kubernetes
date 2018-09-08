@@ -30,41 +30,7 @@
         </sonar.host.url>
       </properties>
 
-      <repositories>
-        <repository>
-          <id>maven-public</id>
-          <url>http://nexus-direct:8081/repository/maven-public</url>
-          <layout>default</layout>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-        <repository>
-          <id>maven-releases</id>
-          <url>http://nexus-direct:8081/repository/maven-releases</url>
-          <layout>default</layout>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-        <repository>
-          <id>maven-snapshots</id>
-          <url>http://nexus-direct:8081/repository/maven-snapshots</url>
-          <layout>default</layout>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </repository>
-      </repositories>
+
 
      </profile>
    </profiles>
