@@ -26,8 +26,17 @@ spec:
     command:  
     - cat
     tty: true
+
+  - name: zap
+    image: owasp/zap2docker-stable:2.7.0
+    imagePullPolicy: IfNotPresent
+    command:  
+    - /bin/cat
+    tty: true
+    securityContext:
+      runAsUser: 0
     
-  - name: zapcli
+  - name: python3
     image: python:3.7-stretch
     imagePullPolicy: IfNotPresent
     command:  
@@ -86,17 +95,16 @@ spec:
           //git branch: 'mergeAll', url: 'https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git'
       }
 
+      container('kubectl') {
+          //Manage Nexus secret
+          // SECURITY WARNING : password displayed in jenkins Logs
+          sh 'sed -i.bak \"s#NEXUSLOGIN#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.username}" | base64 --decode)#\" pipeline-tools/maven/maven-custom-settings'
+          sh 'sed -i.bak \"s#NEXUSPASS#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#\" pipeline-tools/maven/maven-custom-settings'
+      }
 
       stage('Sonar and Dependency-Check') {
 
-          container('kubectl') {
-              //Manage Nexus secret
-              sh 'sed -i.bak \"s#NEXUSLOGIN#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.username}" | base64 --decode)#\" pipeline-tools/maven/maven-custom-settings'
-              sh 'sed -i.bak \"s#NEXUSPASS#$(kubectl get secret nexus-admin-pass -o jsonpath="{.data.password}" | base64 --decode)#\" pipeline-tools/maven/maven-custom-settings'
-          }
-
           container('maven') {
-
               // ddcheck=true will activate dependency-check scan (configured in POM.xml via a profile)
               sh 'mvn -s pipeline-tools/maven/maven-custom-settings clean verify -Dddcheck=true sonar:sonar'
               sh 'mkdir reports && mkdir reports/dependency && cp target/dependency-check-report.xml reports/dependency/'
@@ -166,7 +174,6 @@ spec:
 
       }
 
-
       stage('DAST with ZAP') {
 
           container('kubectl') {
@@ -191,34 +198,36 @@ spec:
           }
 
           // Execute scan and analyse results
-          try {
-              container('zapcli') {
-                  // Prerequisites installation on python image
-                  // Could be optimized by providing a custom docker image, built and pushed to github before...
-                  sh 'pip install python-owasp-zap-v2.4'
-                  sh 'pip install behave'
 
-                  //Give a chance to app to start
-                  //TODO : find a good "wait" method
-                  sh 'sleep 30'
-                  //Check if the app is available (should show some html source code in logs)
-                  sh "curl http://${appName}-frontend-defaultns/"
-
-                  // Executing zap client python scripts
-                  sh "cd pipeline-tools/zap/scripts/ && chmod +x pen-test-app.py && ./pen-test-app.py --zap-host zap-proxy-service:8090 --target http://${appName}-frontend-defaultns/"
-
-                  // Publish ZAP Html Report into Jenkins (jenkins plugin required)
-                  publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'pipeline-tools/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
-
-                  // Move XML report to be uploaded later in defectdojo
-                  sh "mkdir reports/zap && mv pipeline-tools/zap/scripts/zap-results.xml reports/zap/"
-
-                  // Analysing results using behave
-                  sh 'cd pipeline-tools/zap/scripts/ && behave'
+          container('zap') {
+              sh("zap-cli start -o '-config api.disablekey=true'")
+              //Give a chance to the app to start
+              sh 'sleep 30'
+              //TODO : configure scanners
+              try{
+                  sh("zap-cli quick-scan -o '-config api.disablekey=true' -l Low --spider -r http://${appName}-frontend-defaultns/")
+              }catch(all) {
+                  //scripts gives error if any findings
+                  // for later : break the build in case of high in master branch (e.g. when building release)
               }
-          } catch (all) {
-              // We get in this catch at least if the policy is not respected (behave launches an error)
-              // TODO : Decide what to do when policy is not respected. For now, to allow demo, we do not want to break the build
+
+              sh("zap-cli report -f xml -o zap-results.xml")
+              sh("zap-cli report -f html -o pipeline-tools/zap/scripts/results.html")
+              //sh("zap-cli report -f json -o pipeline-tools/zap/scripts/results.json")
+              //TODO : JSON NOT AVAILABLE get json report via custom script...
+              sh("zap-cli shutdown")
+              //TODO : Carefull to privileges
+              sh "mkdir reports/zap && cp zap-results.xml reports/zap/"
+
+              publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'pipeline-tools/zap/scripts/', reportFiles: 'results.html', reportName: 'ZAP full report', reportTitles: ''])
+
+              // Behave must use json report format...
+              //try{
+                  // Analysing results using behave
+              //    sh 'cd pipeline-tools/zap/scripts/ && behave'
+              //} catch(all) {
+
+              //}
           }
 
           // Destroy app from testing namespace
@@ -228,6 +237,7 @@ spec:
               sh "kubectl delete service ${appName}-frontend --namespace=testing"
           }
       }
+
 
       try {
           withCredentials([string(credentialsId: 'defectdojo_apikey', variable: 'defectdojo_apikey')]) {

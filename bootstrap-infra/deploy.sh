@@ -103,6 +103,7 @@ build_sonar_server_with_helm() {
 }
 
 
+#TO BE DELETED
 build_zap_server() {
     printf "\nInstalling ZAP ..."
     kubectl apply -f zap/k8s/deployment-zap.yaml
@@ -254,7 +255,8 @@ _main() {
   build_sonar_server_with_helm
 
   # Setup ZAP server
-  build_zap_server
+  # not used anymore : prefer to use docker image in pipeline to allow parralel pipelines
+  #build_zap_server
 
   # Set up clair
   build_clair_server_with_helm
