@@ -135,6 +135,7 @@ build_ddtrack_server() {
 create_namespaces() {
   printf "\nCreate namespaces\n"
   kubectl create ns testing
+  kubectl create ns acceptance
   kubectl create ns production
 
 }
