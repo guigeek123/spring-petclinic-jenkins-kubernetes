@@ -13,8 +13,13 @@ if [ "$#" -ne 1 ] ; then
 fi
 readonly token="$1"
 
-app1=( "Kubepetclinic" "https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git" "split" )
-app2=( "bla2" "https://github.com/guigeek123/spring-petclinic-jenkins-kubernetes.git" "cleaning" )
+app1=( "multiBranch" "KubeMultiBranchPetclinic" "https://github.com/guigeek123/petclinic-devsecops-demo" "" )
+app2=( "single" "Kubepetclinic2" "https://github.com/guigeek123/petclinic-devsecops-demo.git" "master" )
 
-scripts/createJob.sh -k $token -b ${app1[2]} -g ${app1[1]} ${app1[0]}
-#scripts/createJob.sh -k $token -b ${app2[2]} -g ${app2[1]} ${app2[0]}
+
+if [ "${app1[0]}" = "multiBranch" ] ;
+then
+  scripts/createMultiBranchJob.sh -k $token -g ${app1[2]} ${app1[1]}
+else
+  scripts/createJob.sh -k $token -b ${app1[3]} -g ${app1[2]} ${app1[1]}
+fi
