@@ -17,6 +17,7 @@ Master:
 Agent:
   Enabled: false
 Persistence:
+  Enabled: false
   Size: 100Gi
 NetworkPolicy:
   ApiVersion: networking.k8s.io/v1
