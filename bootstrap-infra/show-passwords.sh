@@ -16,7 +16,8 @@ show_passwords() {
   printf "\n"
   printf " DefectDojo :\n"
   printf "   - Login : admin\n"
-  printf "   - Password : admin\n"
+  printf "   - Password : "
+  printf $(kubectl get secret defectdojo-admin-pass -o jsonpath="{.data.dojo_password}" | base64 --decode);echo
   printf "\n"
   printf " Nexus :\n"
   printf "   - Login : admin\n"

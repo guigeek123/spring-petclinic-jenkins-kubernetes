@@ -195,6 +195,133 @@ build_weave() {
   kubectl create -f 'https://cloud.weave.works/launch/k8s/weavescope.yaml'
 }
 
+configure_defectdojo() {
+  # Parameters :
+  URL=http://localhost:8000
+  USER=admin
+  DEFAULT_PASSWORD=admin
+  JENKINSURL="http://localhost:8080"
+
+  #Generate random admin password for DefectDojo and save it into a kubernetes secret
+  printf "\nCreating random admin password for Nexus...."
+  echo -n 'admin' > ./dojo_username
+  date +%s | sha256sum | head -c 10 > ./dojo_password
+  printf "\nSaving password into a Kubernetes secret ...."
+  kubectl create secret generic defectdojo-admin-pass --from-file=./dojo_username --from-file=./dojo_password
+
+  #Wait for DefectDojo to  be deployed and up
+  scripts/wait-for-deployment.sh -t 300 defectdojo
+  scripts/defectdojo_access.sh
+  printf "\nAbout to configure DefectDojo ...\n"
+  #Activate find sec bugs profile
+  while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8000/login)" != "200" ]]; do sleep 5; done
+
+  # Open a session with username and password (retrieve the login form CSRF token and then login)
+  CSRFTOKEN=`curl -s -c cookies.txt -b cookies.txt $URL/login | grep csrfmiddlewaretoken | awk '{print $7}' | cut -c8-71`
+  curl -s -c cookies.txt -b cookies.txt -X POST -F "username=$USER" -F "password=$DEFAULT_PASSWORD" -F "csrfmiddlewaretoken=$CSRFTOKEN" $URL/login
+
+  # Retreive the API key
+  curl -s -c cookies.txt -b cookies.txt $URL/api/key | grep " 'Authorization': 'ApiKey" | awk '{print $3}' | cut -c7-46 > dojo_apikey
+
+  # Set up admin email adress (needed for the API to work correctly, otherwize importscan/ fails with error_message: User has no usercontactinfo.)
+  CSRFTOKEN=`curl -s -c cookies.txt -b cookies.txt $URL/profile | grep csrfmiddlewaretoken | awk '{print $6}' | cut -c8-71`
+  curl -s -c cookies.txt -b cookies.txt -X POST -F "csrfmiddlewaretoken=$CSRFTOKEN" -F "email=nomail@lab.lab" $URL/profile > /dev/null
+
+  # Setup defectdojo options (enable_deduplication and delete_dupulicates)
+  CSRFTOKEN=`curl -s -c cookies.txt -b cookies.txt $URL/system_settings | grep csrfmiddlewaretoken | awk '{print $6}' | cut -c8-71`
+  curl -s -c cookies.txt -b cookies.txt -X POST -F "csrfmiddlewaretoken=$CSRFTOKEN" \
+  -F "enable_deduplication=true" \
+  -F "delete_dupulicates=true" \
+  -F "product_grade_a=90" \
+  -F "product_grade_b=80" \
+  -F "product_grade_c=70" \
+  -F "product_grade_d=60" \
+  -F "product_grade_f=59" \
+  -F "engagement_auto_close_days=3" \
+  -F "sla_critical=7" \
+  -F "sla_high=30" \
+  -F "sla_medium=90" \
+  -F "sla_low=110" \
+  -F "time_zone=Europe/Paris" \
+  -F "max_dupes=" \
+  -F "enable_jira=" \
+  -F "jira_labels=" \
+  -F "jira_minimum_severity=" \
+  -F "enable_slack_notifications=" \
+  -F "slack_channel=" \
+  -F "slack_token=" \
+  -F "slack_username=" \
+  -F "enable_hipchat_notifications=" \
+  -F "hipchat_site=" \
+  -F "hipchat_channel=" \
+  -F "hipchat_token=" \
+  -F "enable_mail_notifications=" \
+  -F "mail_notifications_from=" \
+  -F "mail_notifications_to=" \
+  -F "s_finding_severity_naming=" \
+  -F "false_positive_history=" \
+  -F "url_prefix=" \
+  -F "team_name=" \
+  -F "display_endpoint_uri=" \
+  -F "enable_product_grade=" \
+  -F "enable_benchmark=" \
+  -F "enable_template_match=" \
+  -F "engagement_auto_close=" \
+  -F "enable_finding_sla=" \
+  $URL/system_settings > /dev/null
+
+  # Change the admin password (must be the last operation because it logs out the user)
+  CSRFTOKEN=`curl -s -c cookies.txt -b cookies.txt $URL/change_password | grep csrfmiddlewaretoken | awk '{print $4}' | cut -c8-71`
+  curl -s -c cookies.txt -b cookies.txt -X POST -F "csrfmiddlewaretoken=$CSRFTOKEN" -F "current_password=$DEFAULT_PASSWORD" -F "new_password=$(kubectl get secret defectdojo-admin-pass -o jsonpath="{.data.dojo_password}" | base64 --decode)" $URL/change_password
+
+  # Terminate session (logout)
+  curl -s -c cookies.txt -b cookies.txt $URL/logout
+
+  # Cleaning
+  rm cookies.txt
+  rm dojo_username
+  rm dojo_password
+
+}
+
+configure_jenkins() {
+
+  scripts/wait-for-deployment.sh -t 300 cd-jenkins
+  scripts/jenkins_access.sh
+  sleep 5
+  printf "\n\nPlease create an admin token in Jenkins and paste it HERE\n"
+  printf "Jenkins admin Password is : $(kubectl get secret cd-jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode)"
+  printf "\nBrowser will open in 5s ...\n"
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf "."
+  sleep 1
+  printf ".\n"
+  sensible-browser "http://localhost:8080/user/admin/configure"
+  printf "Jenkins Token ? "
+  read JENKINS_TOKEN
+
+  printf "\nTrying to configure DefectDojo API Key in Jenkins...\n"
+
+  ## Setup Jenkins Secret with admin API key <- need additionnal scripts to do so (cred_SecretText.sh and cred_SecretText.groovy, see below)
+  DOJO_APIKEY=$(cat dojo_apikey)
+  CRUMB="$(curl -s http://localhost:8080/'crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)' -u admin:$JENKINS_TOKEN)"
+  curl -d "script=$(scripts/jenkins/cred_SecretText.sh defectdojo_apikey $DOJO_APIKEY)" -H "$CRUMB" --user admin:$JENKINS_TOKEN http://localhost:8080/scriptText
+
+  # Cleaning
+  rm dojo_apikey
+
+  printf "\nSetting up demo jobs...\n"
+  ./demo_jobs_setup.sh $JENKINS_TOKEN
+
+}
+
+
 
 access_main_apps() {
 
@@ -210,8 +337,8 @@ access_main_apps() {
   sensible-browser "http://localhost:8080/"
 
   # DefectDojo
-  scripts/wait-for-deployment.sh -t 300 defectdojo
-  scripts/defectdojo_access.sh
+  #scripts/wait-for-deployment.sh -t 300 defectdojo
+  #scripts/defectdojo_access.sh
   sensible-browser "http://localhost:8000/"
 
   # Dependency Track
@@ -279,6 +406,9 @@ _main() {
 
   build_weave
 
+  configure_defectdojo
+
+  configure_jenkins
 
   printf "Configuration instructions and logins will be diplayed here...\n"
   printf "Accessing main apps to be configured in 5s "
@@ -302,13 +432,13 @@ _main() {
 
   printf "\n\n WARNING  : PLEASE READ WITH ATTENTION"
   printf "\n\n"
-  printf "DON'T FORGET 1 : Manual configuration for DEFECTDOJO is REQUIRED !!!!\n"
-  printf "1 - Get the API key from http://localhost:8000/api/key, to use it Jenkins credential, with ID name 'defectdojo_apikey' \n"
-  printf "2 - Set a (random) contact name (e.g. github section) in admin user config at http://localhost:8000/profile \n"
-  printf "3 - Go to system settings (http://localhost:8000/system_settings) and activate 'Deduplicate findings' and 'Delete duplicates' options"
-  printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in Jenkinsfile (stage 'Upload Reports to DefectDojo) by default) \n"
-  printf "\n\n"
-  printf "DON'T FORGET 2 : Manual configuration for DEPENDENCY TRACK IS REQUIRED !!!!\n"
+  #printf "DON'T FORGET 1 : Manual configuration for DEFECTDOJO is REQUIRED !!!!\n"
+  #printf "1 - Get the API key from http://localhost:8000/api/key, to use it Jenkins credential, with ID name 'defectdojo_apikey' \n"
+  #printf "2 - Set a (random) contact name (e.g. github section) in admin user config at http://localhost:8000/profile \n"
+  #printf "3 - Go to system settings (http://localhost:8000/system_settings) and activate 'Deduplicate findings' and 'Delete duplicates' options\n"
+  #printf "4 - Create a product in DefectDojo (will have by default id 1 which is used in Jenkinsfile (stage 'Upload Reports to DefectDojo) by default) \n"
+  #printf "\n\n"
+  printf "DON'T FORGET : Manual configuration for DEPENDENCY TRACK IS REQUIRED !!!!\n"
   printf "1 - Get the API key from the 'automation' account to use it Jenkins credential, with ID name 'ddtrack_apikey' \n"
   printf "2 - Give the 'PORTFOLIO_MANAGEMENT' access right to the 'automation' account (ability to create projects)"
   printf "\n\n"
