@@ -2,8 +2,8 @@ import json
 import re
 import sys
 from behave import *
-zap_results_file = '../reports/zap/zap_results.json'
-clair_results_file = '../reports/clair/clair_results.json'
+zap_results_file = '../../reports/zap/zap_results.json'
+clair_results_file = '../../reports/clair/clair_results.json'
 
 @given('we have valid zap json alert output')
 def step_impl(context):
