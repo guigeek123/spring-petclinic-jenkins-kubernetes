@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-pskill kubectl
+pkill kubectl
 
 # Nexus
 ./nexus_access.sh
