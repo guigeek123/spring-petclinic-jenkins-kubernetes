@@ -29,7 +29,7 @@ def main():
 
     zap = openZapProxy(args)
 
-    sys.stdout.write('Info: Scan completed; writing results in html and json formats.\n')
+    sys.stdout.write('Writing ZAP results in html and json formats.\n')
     # export of results in json format, to be analyzed by behave
     with open('zap-results.json', 'w') as f:
         json.dump(zap.core.alerts(), f)
