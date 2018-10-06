@@ -12,11 +12,9 @@ from zapv2 import ZAPv2
 def openZapProxy(args):
     args.zap_host = re.sub(r'^((?!http://).*)',
                            r'http://\1', args.zap_host)
-    args.zap_host_ssh = re.sub(r'^((?!http?s://).*)',
-                               r'https://\1', args.zap_host_ssh)
 
     return ZAPv2(proxies={'http': args.zap_host,
-                          'https': args.zap_host_ssh})
+                          'https': ""})
 
 
 def fetchArguments():
