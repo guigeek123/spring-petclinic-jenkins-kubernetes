@@ -5,6 +5,7 @@ service:
 
 plugins:
   install:
-    - "https://sonarsource.bintray.com/Distribution/sonar-java-plugin/sonar-java-plugin-5.7.0.15470.jar"
+    - "http://repo.maven.apache.org/maven2/org/sonarsource/java/sonar-java-plugin/5.7.0.15470/sonar-java-plugin-5.7.0.15470.jar"
+    #- "https://sonarsource.bintray.com/Distribution/sonar-java-plugin/sonar-java-plugin-5.7.0.15470.jar"
     - "https://github.com/spotbugs/sonar-findbugs/releases/download/3.7.0/sonar-findbugs-plugin-3.7.0.jar"
 
