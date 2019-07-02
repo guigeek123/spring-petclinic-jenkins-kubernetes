@@ -1,13 +1,21 @@
 Master:
-  ImageTag: "2.140-alpine"
+  #TODO : refixer les dépendances
+  #ImageTag: "2.140-alpine"
   InstallPlugins:
-    - kubernetes:1.7.1
-    - workflow-aggregator:2.5
-    - workflow-job:2.21
-    - credentials-binding:1.16
-    - git:3.9.1
-    - google-oauth-plugin:0.6
-    - google-source-plugin:0.3
+    - kubernetes:latest
+    - workflow-job:latest
+    - workflow-aggregator:latest
+    - credentials-binding:latest
+    - git:latest
+    - google-oauth-plugin:latest
+    - google-source-plugin:latest
+    #- kubernetes:1.7.1
+    #- workflow-aggregator:2.5
+    #- workflow-job:2.21
+    #- credentials-binding:1.16
+    #- git:3.9.1
+    #- google-oauth-plugin:0.6
+    #- google-source-plugin:0.3
     - htmlpublisher:1.16
     - dependency-check-jenkins-plugin:3.0.1
   Cpu: "1"
